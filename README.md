@@ -184,10 +184,17 @@ sees a single address and no cross-site setup is needed.
 4. Deploy, then open `https://<your-service>.onrender.com/health` — it should
    answer.
 
-`render.yaml` asks for the **Starter** plan with a 1 GB disk. The free plan
-sleeps after 15 minutes without visitors, so the next visit waits about a
-minute, and it has no disk, so every account and every written question would
-disappear on each restart.
+`render.yaml` uses Render's **free** plan, so no payment details are needed.
+Two things come with that:
+
+- **It sleeps** after 15 minutes without visitors, and the next visit waits
+  about a minute while it wakes. Open the site a minute before a demo.
+- **Nothing is kept between restarts.** There is no disk on the free plan, so
+  every restart or deploy wipes the database — accounts, the uploaded
+  curriculum and all written questions. Sign up and upload again afterwards.
+
+To keep data and stay awake, change `plan: free` to `plan: starter` and add a
+disk mounted at `/var/data` with `BRAINTUITIVE_DATA_DIR=/var/data` (both paid).
 
 ### 2. The website, on Vercel
 

@@ -1,18 +1,26 @@
-# Render Blueprint for the Braintuitive API.
+# Render Blueprint for the Braintuitive API, on Render's free plan.
 #
-# In the Render dashboard: New > Blueprint, choose this repository, and fill in
-# NEBIUS_API_KEY and PINECONE_API_KEY when asked. The website itself is on
-# Vercel (frontend/vercel.json), which forwards /api here.
+# In the Render dashboard: New > Blueprint, choose this repository (or paste
+# its public URL), and fill in NEBIUS_API_KEY and PINECONE_API_KEY when asked.
+# The website itself is on Vercel (frontend/vercel.json), which forwards /api
+# here.
 #
-# The "starter" plan is deliberate: the free plan sleeps after 15 minutes idle
-# (the first visit then waits about a minute) and cannot keep a disk, so every
-# account and every written question would vanish on each restart.
+# What free means for this app:
+# - The service sleeps after 15 minutes without visitors; the next visit waits
+#   about a minute while it wakes. Open the site a minute before a demo.
+# - There is no persistent disk. The SQLite database lives on the instance's
+#   own disk and is wiped on every restart and every deploy: accounts, the
+#   uploaded curriculum and all written questions. Sign up and upload again
+#   after one, and allow about ten minutes for the first quizzes to be written.
+#
+# To keep data and stay awake, switch to plan: starter and add a disk mounted
+# at /var/data with BRAINTUITIVE_DATA_DIR=/var/data (both paid).
 services:
   - type: web
     name: braintuitive-api
     runtime: python
     rootDir: backend
-    plan: starter
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
@@ -23,16 +31,9 @@ services:
         value: production
       - key: DEBUG
         value: "false"
-      # The database and uploads live on the disk below, so they survive deploys.
-      - key: BRAINTUITIVE_DATA_DIR
-        value: /var/data
       - key: SECRET_KEY
         generateValue: true
       - key: NEBIUS_API_KEY
         sync: false
       - key: PINECONE_API_KEY
         sync: false
-    disk:
-      name: braintuitive-data
-      mountPath: /var/data
-      sizeGB: 1
