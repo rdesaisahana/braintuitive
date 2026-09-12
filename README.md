@@ -5,6 +5,9 @@ school's PDF; the app turns it into quizzes that answer back the moment a child
 chooses, and keeps celebration for genuine mastery.
 
 ---
+Flowchart:
+<img width="1215" height="1295" alt="Braintuitive flowchart1" src="https://github.com/user-attachments/assets/8215e03d-5fe8-44bb-9cf7-4c95e6534920" />
+
 
 ## Start here
 
