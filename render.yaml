@@ -1,0 +1,38 @@
+# Render Blueprint for the Braintuitive API.
+#
+# In the Render dashboard: New > Blueprint, choose this repository, and fill in
+# NEBIUS_API_KEY and PINECONE_API_KEY when asked. The website itself is on
+# Vercel (frontend/vercel.json), which forwards /api here.
+#
+# The "starter" plan is deliberate: the free plan sleeps after 15 minutes idle
+# (the first visit then waits about a minute) and cannot keep a disk, so every
+# account and every written question would vanish on each restart.
+services:
+  - type: web
+    name: braintuitive-api
+    runtime: python
+    rootDir: backend
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.5
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      # The database and uploads live on the disk below, so they survive deploys.
+      - key: BRAINTUITIVE_DATA_DIR
+        value: /var/data
+      - key: SECRET_KEY
+        generateValue: true
+      - key: NEBIUS_API_KEY
+        sync: false
+      - key: PINECONE_API_KEY
+        sync: false
+    disk:
+      name: braintuitive-data
+      mountPath: /var/data
+      sizeGB: 1

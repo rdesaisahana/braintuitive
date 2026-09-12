@@ -15,6 +15,7 @@ Example:
 from __future__ import annotations
 
 import logging
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -25,7 +26,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Repository layout: <project_root>/backend/config.py
 BACKEND_DIR: Path = Path(__file__).resolve().parent
 PROJECT_ROOT: Path = BACKEND_DIR.parent
-DATA_DIR: Path = PROJECT_ROOT / "data"
+# Where the database and uploaded PDFs live. A host with a persistent disk
+# points this at the disk (BRAINTUITIVE_DATA_DIR=/var/data on Render). The one
+# environment read outside Settings: these paths are needed before it exists,
+# so it must be a real environment variable, not a line in .env.
+DATA_DIR: Path = Path(os.environ.get("BRAINTUITIVE_DATA_DIR") or PROJECT_ROOT / "data")
 UPLOAD_DIR: Path = DATA_DIR / "uploads"
 
 

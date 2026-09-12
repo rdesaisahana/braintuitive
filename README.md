@@ -166,6 +166,44 @@ Uploaded PDFs live in `data/uploads` and can go with it. Curriculum vectors live
 in Pinecone, outside this database; clear the ones belonging to deleted accounts
 with `PineconeStore().delete_namespace("math-grade6-u<owner>")`.
 
+## Deploy
+
+The website runs on **Vercel** and the API on **Render**, both built straight
+from this repository. Vercel forwards `/api` to Render, so the browser still
+sees a single address and no cross-site setup is needed.
+
+### 1. The API, on Render
+
+1. Sign in at [render.com](https://render.com) with GitHub.
+2. **New → Blueprint**, and choose this repository. Render reads `render.yaml`.
+3. When asked, paste `NEBIUS_API_KEY` and `PINECONE_API_KEY` from your local
+   `.env`. `SECRET_KEY` is generated for you.
+4. Deploy, then open `https://<your-service>.onrender.com/health` — it should
+   answer.
+
+`render.yaml` asks for the **Starter** plan with a 1 GB disk. The free plan
+sleeps after 15 minutes without visitors, so the next visit waits about a
+minute, and it has no disk, so every account and every written question would
+disappear on each restart.
+
+### 2. The website, on Vercel
+
+1. Sign in at [vercel.com](https://vercel.com) with GitHub.
+2. **Add New → Project**, import this repository, and set **Root Directory** to
+   `frontend`. Everything else comes from `frontend/vercel.json`.
+3. If Render named the API anything other than
+   `braintuitive-api.onrender.com`, put its address in the `destination` in
+   `frontend/vercel.json`, commit and push.
+4. Deploy, and open the Vercel address.
+
+### After the first deploy
+
+- The live database starts empty: sign up again and upload the curriculum.
+- Upload about ten minutes before a demo, so the first quizzes are already
+  written — the curriculum page shows which topics are ready.
+- Local development and the live site share one Pinecone index. Each family's
+  curriculum has its own namespace, so the two never mix.
+
 ---
 
 ## Architecture
