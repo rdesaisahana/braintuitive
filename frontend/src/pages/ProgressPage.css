@@ -1,0 +1,407 @@
+/*
+ * Progress, built to the approved design and sized to fit one screen: every
+ * vertical measure scales with the frame's --k (0px at 640px tall to 1px at
+ * 900px). Every class starts with bt-pg; colours are measured from the design.
+ */
+
+.bt-app:has(.bt-pg) { --bt-bg: #fdfcf9; --bt-top: #fdfcf9; }
+
+.bt-app {
+  --pg-navy: #0f1a3a;
+  --pg-sub: #283c60;
+  --pg-green: #1f7a4d;
+  --pg-orange: #f0661a;
+  --pg-bar: #5c9f7a;
+  --pg-track: #ededed;
+  --pg-pill: #eef4fa;
+  --pg-link: #1f55c8;
+  --pg-when: #576a7f;
+  --pg-card: #fffefd;
+}
+
+.bt-app .bt-pg { max-width: 1240px; display: flex; flex-direction: column; }
+.bt-app.is-fit .bt-pg { min-height: 100%; }
+
+.bt-app .bt-pg-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.bt-app .bt-pg h1 {
+  margin: 0;
+  font-size: calc(28px + 10 * var(--k));
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--pg-navy);
+}
+.bt-app .bt-pg-sub { margin: calc(2px + 4 * var(--k)) 0 0; font-size: calc(15px + 2 * var(--k)); color: var(--pg-sub); }
+.bt-app .bt-pg-loading,
+.bt-app .bt-pg-quiet { margin: 12px 0 0; font-size: 15px; color: var(--pg-when); }
+.bt-app .bt-pg-error {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--bt-error-bg);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bt-error);
+}
+
+.bt-app .bt-pg-period {
+  height: calc(40px + 8 * var(--k));
+  min-width: 180px;
+  padding: 0 44px 0 18px;
+  border: 1.5px solid #e6e8ec;
+  border-radius: 14px;
+  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f1a3a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 18px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--pg-navy);
+  appearance: none;
+  cursor: pointer;
+}
+
+/* -- the four numbers ---------------------------------------------------- */
+
+.bt-app .bt-pg-stats {
+  margin-top: calc(10px + 14 * var(--k));
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: calc(12px + 10 * var(--k));
+}
+.bt-app .bt-pg-stat {
+  padding: calc(10px + 10 * var(--k)) calc(14px + 8 * var(--k));
+  display: flex;
+  align-items: flex-start;
+  gap: calc(12px + 8 * var(--k));
+  border-radius: 18px;
+  background: var(--pg-card);
+  box-shadow: 0 0 0 1px #f0ede8, 0 14px 30px -26px rgba(60, 50, 80, 0.35);
+}
+.bt-app .bt-pg-stat img { width: calc(48px + 26 * var(--k)); height: auto; flex-shrink: 0; }
+.bt-app .bt-pg-stat div { display: grid; min-width: 0; }
+.bt-app .bt-pg-stat b {
+  font-size: calc(24px + 10 * var(--k));
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--pg-navy);
+}
+.bt-app .bt-pg-stat span { margin-top: 2px; font-size: calc(13.5px + 3 * var(--k)); color: var(--pg-sub); }
+.bt-app .bt-pg-stat em {
+  margin-top: calc(4px + 8 * var(--k));
+  font-size: calc(13.5px + 2.5 * var(--k));
+  font-style: normal;
+  color: var(--pg-green);
+}
+.bt-app .bt-pg-stat em.is-orange { color: var(--pg-orange); }
+
+/* -- units and activity -------------------------------------------------- */
+
+.bt-app .bt-pg-row {
+  margin-top: calc(10px + 12 * var(--k));
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr);
+  gap: calc(16px + 12 * var(--k));
+  align-items: start;
+}
+.bt-app .bt-pg-card {
+  padding: calc(12px + 10 * var(--k)) calc(16px + 10 * var(--k));
+  border-radius: 20px;
+  background: var(--pg-card);
+  box-shadow: 0 0 0 1px #f0ede8, 0 16px 36px -28px rgba(60, 50, 80, 0.35);
+}
+.bt-app .bt-pg-card h2 { margin: 0; font-size: calc(18px + 5 * var(--k)); font-weight: 800; color: var(--pg-navy); }
+.bt-app .bt-pg-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.bt-app .bt-pg-viewall {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pg-link);
+  cursor: pointer;
+}
+.bt-app .bt-pg-viewall:hover { text-decoration: underline; }
+
+.bt-app .bt-pg-units { margin: calc(6px + 6 * var(--k)) 0 0; padding: 0; list-style: none; }
+.bt-app .bt-pg-units li {
+  min-height: calc(34px + 14 * var(--k));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(90px, 0.75fr) 46px 36px;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid #f1eeea;
+}
+.bt-app .bt-pg-units li:first-child { border-top: 0; }
+.bt-app .bt-pg-pill {
+  padding: calc(3px + 3 * var(--k)) 12px;
+  border-radius: 10px;
+  background: var(--pg-pill);
+  font-size: calc(13.5px + 2 * var(--k));
+  color: var(--pg-navy);
+}
+.bt-app .bt-pg-unit-title {
+  overflow: hidden;
+  font-size: calc(13.5px + 2 * var(--k));
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--pg-navy);
+}
+.bt-app .bt-pg-bar { height: 12px; overflow: hidden; border-radius: 999px; background: var(--pg-track); }
+.bt-app .bt-pg-bar span { display: block; height: 100%; border-radius: inherit; background: var(--pg-bar); }
+.bt-app .bt-pg-pct { font-size: calc(13.5px + 2 * var(--k)); font-variant-numeric: tabular-nums; color: var(--pg-navy); }
+.bt-app .bt-pg-pct.is-on { font-weight: 700; color: #0b6d3f; }
+.bt-app .bt-pg-status { display: block; width: calc(28px + 8 * var(--k)); height: auto; }
+.bt-app .bt-pg-go { padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+
+.bt-app .bt-pg-activity { margin: calc(6px + 6 * var(--k)) 0 0; padding: 0; list-style: none; }
+.bt-app .bt-pg-activity li {
+  min-height: calc(44px + 16 * var(--k));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid #f1eeea;
+}
+.bt-app .bt-pg-activity li:first-child { border-top: 0; }
+.bt-app .bt-pg-act-icon { width: calc(38px + 14 * var(--k)); height: auto; flex-shrink: 0; }
+.bt-app .bt-pg-act-text { min-width: 0; flex: 1; display: grid; }
+.bt-app .bt-pg-act-text b {
+  overflow: hidden;
+  font-size: calc(14px + 2.5 * var(--k));
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--pg-navy);
+}
+.bt-app .bt-pg-act-text small { font-size: calc(13px + 2.5 * var(--k)); color: var(--pg-when); }
+.bt-app .bt-pg-when { flex-shrink: 0; font-size: calc(13.5px + 3 * var(--k)); color: var(--pg-when); }
+
+/* -- the quote, over the landscape -------------------------------------- */
+
+.bt-app .bt-pg-quote {
+  max-width: 560px;
+  margin: calc(12px + 14 * var(--k)) 0 0;
+  padding: calc(12px + 10 * var(--k)) calc(18px + 10 * var(--k));
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-radius: 20px;
+  background: var(--pg-card);
+  box-shadow: 0 0 0 1px #f0ede8, 0 16px 36px -28px rgba(60, 50, 80, 0.35);
+}
+.bt-app.is-fit .bt-pg-quote { margin-top: auto; }
+.bt-app .bt-pg-quote blockquote {
+  margin: 0;
+  flex: 1;
+  font-size: calc(16px + 4 * var(--k));
+  line-height: 1.4;
+  color: var(--pg-navy);
+}
+.bt-app .bt-pg-quote-heart { width: 40px; height: auto; flex-shrink: 0; }
+.bt-app .bt-pg-quote-heart.is-small { width: 32px; align-self: flex-end; }
+
+/* -- "View all" --------------------------------------------------------- */
+
+.bt-app .bt-pg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 26, 58, 0.28);
+}
+.bt-app .bt-pg-dialog {
+  width: min(560px, 100%);
+  max-height: min(80vh, 640px);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  background: var(--pg-card);
+  box-shadow: 0 30px 60px -20px rgba(15, 26, 58, 0.4);
+}
+.bt-app .bt-pg-dialog h2 { margin: 0; font-size: 20px; font-weight: 800; color: var(--pg-navy); }
+.bt-app .bt-pg-activity.is-all { overflow-y: auto; }
+
+/* -- the landscape, from the design, in three pieces --------------------- */
+
+/* Cut at x 275 and 830, and y 740 / 880, of the 1536 x 1024 design, and
+   scaled together by the page's width so they meet exactly. No z-index:
+   behind the content. */
+.bt-app .bt-pg-floor { position: absolute; inset: auto 0 0 0; pointer-events: none; container-type: inline-size; }
+/* The gap above the middle piece: x 275-830, y 740-880 of the design. */
+.bt-app .bt-pg-floor .is-patch {
+  position: absolute;
+  left: 17.904%;
+  width: 36.133%;
+  bottom: calc(143 / 1536 * 100cqw);
+  height: calc(141 / 1536 * 100cqw);
+  background: linear-gradient(to bottom, #fdfcf9 0%, #fcf8ee 45%, #fbf4e9 100%);
+}
+.bt-app .bt-pg-floor img { position: absolute; bottom: 0; height: auto; }
+.bt-app .bt-pg-floor .is-left { left: 0; width: 17.904%; }
+.bt-app .bt-pg-floor .is-mid { left: 17.904%; width: 36.133%; }
+.bt-app .bt-pg-floor .is-right { right: 0; width: 45.964%; }
+
+@media (max-width: 1100px) {
+  .bt-app .bt-pg-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bt-app .bt-pg-row { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .bt-app .bt-pg-head { flex-wrap: wrap; }
+  .bt-app .bt-pg-units li { grid-template-columns: auto minmax(0, 1fr) 46px 36px; }
+  .bt-app .bt-pg-bar { display: none; }
+  .bt-app .bt-pg-quote { margin-bottom: 140px; }
+}
+
+/* -- tabs, and the two panels behind them -------------------------------- */
+
+.bt-app .bt-pg-tabs {
+  margin-top: calc(10px + 10 * var(--k));
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #f1efe9;
+}
+.bt-app .bt-pg-tabs button {
+  padding: calc(7px + 2 * var(--k)) calc(16px + 4 * var(--k));
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: calc(14px + 1.5 * var(--k));
+  font-weight: 700;
+  color: var(--pg-sub);
+  cursor: pointer;
+}
+.bt-app .bt-pg-tabs button[aria-selected="true"] {
+  background: var(--pg-card);
+  color: var(--pg-navy);
+  box-shadow: 0 0 0 1px #e7e2d9, 0 8px 18px -14px rgba(60, 50, 80, 0.5);
+}
+
+/* A panel keeps the page itself from growing: its own list scrolls instead. */
+.bt-app .bt-pg-panel {
+  margin-top: calc(10px + 12 * var(--k));
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+/* -- skill by skill ------------------------------------------------------ */
+
+.bt-app .bt-pg-skills {
+  margin: calc(6px + 6 * var(--k)) 0 0;
+  padding: 0 6px 0 0;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  display: grid;
+  align-content: start;
+  gap: calc(8px + 6 * var(--k));
+}
+.bt-app .bt-pg-skills li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(90px, 1fr) 46px auto;
+  align-items: center;
+  gap: 6px 12px;
+}
+.bt-app .bt-pg-skill-name {
+  font-size: calc(14.5px + 2 * var(--k));
+  font-weight: 700;
+  color: var(--pg-navy);
+}
+.bt-app .bt-pg-skill-meta { grid-column: 1 / -1; font-size: 13px; color: var(--pg-when); }
+.bt-app .bt-pg-skills li.is-weak .bt-pg-bar > span { background: var(--pg-orange); }
+.bt-app .bt-pg-flag {
+  justify-self: start;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #fdeee2;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #a8500f;
+}
+
+/* -- the revision plan --------------------------------------------------- */
+
+.bt-app .bt-pg-plan-form {
+  margin-top: calc(8px + 6 * var(--k));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.bt-app .bt-pg-days { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: #f1efe9; }
+.bt-app .bt-pg-days button {
+  padding: 7px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pg-sub);
+  cursor: pointer;
+}
+.bt-app .bt-pg-days button[aria-checked="true"] { background: var(--pg-card); color: var(--pg-navy); }
+.bt-app .bt-pg-make {
+  height: calc(38px + 6 * var(--k));
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pg-green);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+.bt-app .bt-pg-make:disabled { opacity: 0.7; cursor: default; }
+
+.bt-app .bt-pg-plan {
+  margin-top: calc(8px + 6 * var(--k));
+  padding-right: 6px;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+.bt-app .bt-pg-plan-summary { margin: 0; font-size: calc(14.5px + 2 * var(--k)); color: var(--pg-sub); }
+.bt-app .bt-pg-plan-days { margin: calc(8px + 6 * var(--k)) 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.bt-app .bt-pg-plan-days li {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0ede8;
+}
+.bt-app .bt-pg-plan-day { font-size: 13px; font-weight: 800; color: var(--pg-green); }
+.bt-app .bt-pg-plan-focus { display: grid; gap: 2px; min-width: 0; }
+.bt-app .bt-pg-plan-focus b { font-size: 15px; font-weight: 700; color: var(--pg-navy); }
+.bt-app .bt-pg-plan-focus small { font-size: 13px; color: var(--pg-when); }
+.bt-app .bt-pg-plan-count { font-size: 13.5px; font-weight: 700; color: var(--pg-sub); white-space: nowrap; }
+.bt-app .bt-pg-plan-advice { margin: calc(8px + 6 * var(--k)) 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.bt-app .bt-pg-plan-advice li { font-size: 14px; color: var(--pg-sub); }
+.bt-app .bt-pg-why { margin-top: calc(8px + 6 * var(--k)); font-size: 14px; color: var(--pg-sub); }
+.bt-app .bt-pg-why summary { font-weight: 700; color: var(--pg-link); cursor: pointer; }
+.bt-app .bt-pg-why ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.bt-app .bt-pg-why b { color: var(--pg-navy); }
+
+/* A quiz in the history opens its topic's revision plan. */
+.bt-app .bt-pg-review {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border: 1.5px solid #dbe7df;
+  border-radius: 999px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pg-green);
+  cursor: pointer;
+}
+.bt-app .bt-pg-review:hover { border-color: var(--pg-green); background: #f3faf6; }

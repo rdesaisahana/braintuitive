@@ -1,0 +1,20 @@
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = "migrations/versions"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+# Alembic writes these; they are machine-generated, not hand-maintained.
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "ANN"]
+ignore = ["ANN401"]  # Any is legitimate for the Mongo/driver boundaries
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN001", "ANN201"]
+# Depends()/Query() in argument defaults is the documented FastAPI idiom,
+# and FastAPI evaluates them per-request, so B008 does not apply.
+"api/*" = ["B008"]

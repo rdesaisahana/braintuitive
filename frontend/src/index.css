@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+@theme {
+  /* Bubblegum: pink and sky blue on near-white. A children's app, not a
+     dashboard -- the lightest of the schemes tried and the most obviously for
+     kids, with almost no colour in the background so the pink and blue carry
+     it. High enough contrast to read at arm's length on a kitchen table. */
+  --color-ink: #2f2536;
+  --color-muted: #7b6d85;
+  --color-line: #ece7f0;
+  --color-canvas: #fcfbfe;
+
+  --color-brand: #c4364f;        /* pink: the app's own colour. Darkened
+                                    from coral #e0526b, which put the white
+                                    button label at 3.76:1. */
+  --color-brand-deep: #a12b41;
+  --color-brand-soft: #ffe5ea;
+
+  --color-sun: #f2a20c;          /* points, streaks, rewards */
+  --color-sun-soft: #fdf0d2;
+  --color-sky: #2e9fd4;
+  --color-sky-soft: #e0f2fb;
+
+  /* Named correct/incorrect, not right/wrong: `text-right` is a built-in
+     Tailwind alignment utility and a colour token of that name loses to it
+     silently -- the text just quietly aligns right. */
+  /* Fixed across every palette, and deliberately dark. These are the one
+     association a child already has when they arrive, so they are not a
+     per-palette decision -- the alternatives below do not override them.
+
+     The values clear WCAG AA (4.5:1) for normal text both on a white card and
+     on their own tint: correct 5.14/4.59, incorrect 5.45/4.61. The lighter
+     shades this replaces sat at 3.34 and 3.23, which is too thin for the
+     small percentages in the progress table or the text of an error. */
+  --color-correct: #0f7d55;
+  --color-correct-soft: #ddf8ee;
+  --color-incorrect: #c42f4a;
+  --color-incorrect-soft: #ffe6ea;
+
+  --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+
+  --radius-xl2: 1.25rem;
+}
+
+/* One rounded, friendly display face for headings and numbers. Loaded from
+   Google Fonts with a real fallback stack, so a blocked CDN costs personality
+   and nothing else. */
+
+/* --------------------------------------------------------------------- */
+/* Alternative palettes                                                    */
+/*                                                                          */
+/* Set `data-palette` on <html> to switch. Each one redefines the same       */
+/* tokens, so no component knows or cares which is active -- that is the     */
+/* whole reason colours are tokens here rather than classes sprinkled        */
+/* through the pages.                                                       */
+/*                                                                          */
+/* `correct` and `incorrect` shift only in tone, never in hue: green-means-  */
+/* right and red-means-wrong is the one association a child already has when */
+/* they arrive, and a palette that trades it for prettiness costs them       */
+/* comprehension on every single question.                                   */
+/* --------------------------------------------------------------------- */
+
+/* Reef -- teal and coral on warm cream. Softer and less corporate than the
+   violet; the cream ground takes the glare off a long session. */
+:root[data-palette="reef"] {
+  --color-ink: #12313a;
+  --color-muted: #5c7f88;
+  --color-line: #dceae9;
+  --color-canvas: #fdf8f2;
+
+  --color-brand: #10908c;
+  --color-brand-deep: #0a6d6a;
+  --color-brand-soft: #dbf3f1;
+
+  --color-sun: #ff8a5b;
+  --color-sun-soft: #ffe9df;
+  --color-sky: #3fb0d8;
+  --color-sky-soft: #e0f4fb;
+}
+
+/* Orchard -- deep blueberry with a lime accent. The highest-energy of the
+   four, and the strongest contrast for a child reading at arm's length. */
+:root[data-palette="orchard"] {
+  --color-ink: #17224a;
+  --color-muted: #647099;
+  --color-line: #e0e5f4;
+  --color-canvas: #f5f7fc;
+
+  --color-brand: #2f5bd7;
+  --color-brand-deep: #2043a8;
+  --color-brand-soft: #e4ecff;
+
+  --color-sun: #8fc422;
+  --color-sun-soft: #f0f9dc;
+  --color-sky: #17b0c9;
+  --color-sky-soft: #ddf5f9;
+}
+
+/* Forest -- pine and moss over parchment. The calmest of the four, and the
+   one that reads most like a book and least like an app. */
+:root[data-palette="forest"] {
+  --color-ink: #1d3324;
+  --color-muted: #55705e;  /* 4.46 -> 5.16 on the canvas */
+  --color-line: #dde8e0;
+  --color-canvas: #f7faf5;
+
+  --color-brand: #2f7d4f;
+  --color-brand-deep: #1f5e39;
+  --color-brand-soft: #dff2e6;
+
+  --color-sun: #d29a1e;
+  --color-sun-soft: #fbf0d4;
+  --color-sky: #3f8fa8;
+  --color-sky-soft: #e2f2f7;
+}
+
+/* Midnight -- indigo and amber on a cool pale ground. The most striking, and
+   the strongest contrast of the four for reading at a distance. */
+:root[data-palette="midnight"] {
+  --color-ink: #1a1f3d;
+  --color-muted: #5e6690;
+  --color-line: #e0e3f0;
+  --color-canvas: #f6f7fc;
+
+  --color-brand: #3b3c9e;
+  --color-brand-deep: #2a2b78;
+  --color-brand-soft: #e6e7fb;
+
+  --color-sun: #e08a1e;
+  --color-sun-soft: #fdeed6;
+  --color-sky: #2b8fa6;
+  --color-sky-soft: #e0f2f6;
+}
+
+/* Bubblegum -- coral and sky on near-white. The lightest and the most
+   obviously for children; almost no colour in the background at all. */
+:root[data-palette="sunset"] {
+  --color-ink: #3d2415;
+  --color-muted: #8a6b56;
+  --color-line: #f2e3d5;
+  --color-canvas: #fdf7f0;
+
+  --color-brand: #bc481a;
+  --color-brand-deep: #93380f;
+  --color-brand-soft: #ffe8da;
+
+  --color-sun: #c9a227;
+  --color-sun-soft: #fbf1cf;
+  --color-sky: #8a5cb8;
+  --color-sky-soft: #f0e7fa;
+}
+
+/* Slate -- graphite and copper. Nearly monochrome, for judging whether the
+   colour is carrying the design or covering for it. */
+:root[data-palette="slate"] {
+  --color-ink: #23272e;
+  --color-muted: #636c75;  /* 4.41 -> 5.02 on the canvas */
+  --color-line: #e3e6ea;
+  --color-canvas: #f7f8f9;
+
+  --color-brand: #4a5560;
+  --color-brand-deep: #333c45;
+  --color-brand-soft: #e6e9ec;
+
+  --color-sun: #b4762a;
+  --color-sun-soft: #f7ecdc;
+  --color-sky: #4d7f96;
+  --color-sky-soft: #e4eff3;
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  background:
+    radial-gradient(900px 500px at 12% -8%, var(--color-brand-soft), transparent 60%),
+    radial-gradient(760px 460px at 92% 0%, var(--color-sky-soft), transparent 55%),
+    var(--color-canvas);
+  background-attachment: fixed;
+  color: var(--color-ink);
+}
+
+h1, h2, h3, .display { font-family: var(--font-display); letter-spacing: -0.01em; }
+
+/* Used for a correct answer and for points landing. Deliberately short --
+   a celebration that outstays its welcome stops being one. */
+@keyframes pop {
+  0%   { transform: scale(0.86); opacity: 0; }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.animate-pop { animation: pop 260ms cubic-bezier(0.34, 1.4, 0.64, 1) both; }
+
+@keyframes rise {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+.animate-rise { animation: rise 320ms ease-out both; }
+
+@keyframes cheer {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25%      { transform: rotate(-7deg) scale(1.08); }
+  75%      { transform: rotate(7deg)  scale(1.08); }
+}
+.animate-cheer { animation: cheer 700ms ease-in-out 2; }
+
+/* Everyone who asks not to be moved, isn't. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop, .animate-rise, .animate-cheer { animation: none; }
+}

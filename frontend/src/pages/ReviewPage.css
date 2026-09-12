@@ -1,0 +1,152 @@
+/*
+ * Revision plan for one topic, in the same frame and palette as Progress, and
+ * sized to fit one screen: the two lists scroll inside their own cards.
+ */
+
+.bt-app:has(.bt-rv) { --bt-bg: #fdfcf9; --bt-top: #fdfcf9; }
+
+.bt-app {
+  --rv-navy: #0f1a3a;
+  --rv-sub: #283c60;
+  --rv-green: #1f7a4d;
+  --rv-green-bg: #e7f4ec;
+  --rv-red: #b42318;
+  --rv-red-bg: #fdecea;
+  --rv-muted: #576a7f;
+  --rv-card: #fffefd;
+}
+
+.bt-app .bt-rv { max-width: 1240px; display: flex; flex-direction: column; }
+.bt-app.is-fit .bt-rv { height: 100%; min-height: 0; }
+
+.bt-app .bt-rv-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.bt-app .bt-rv-eyebrow { margin: 0; font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em; color: var(--rv-green); }
+.bt-app .bt-rv h1 {
+  margin: 4px 0 0;
+  font-size: calc(24px + 8 * var(--k));
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--rv-navy);
+}
+.bt-app .bt-rv-back {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 18px;
+  border: 1.5px solid #e6e8ec;
+  border-radius: 999px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rv-navy);
+  cursor: pointer;
+}
+.bt-app .bt-rv-quiet { margin: 10px 0 0; font-size: 14.5px; color: var(--rv-muted); }
+.bt-app .bt-rv-error {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--rv-red-bg);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rv-red);
+}
+
+.bt-app .bt-rv-card {
+  padding: calc(12px + 8 * var(--k)) calc(16px + 8 * var(--k));
+  border-radius: 20px;
+  background: var(--rv-card);
+  box-shadow: 0 0 0 1px #f0ede8, 0 16px 36px -28px rgba(60, 50, 80, 0.35);
+}
+.bt-app .bt-rv-card h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: calc(17px + 4 * var(--k));
+  font-weight: 800;
+  color: var(--rv-navy);
+}
+.bt-app .bt-rv-count {
+  min-width: 26px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #f1efe9;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--rv-sub);
+}
+
+/* -- what to revise ------------------------------------------------------ */
+
+.bt-app .bt-rv-advice {
+  margin-top: calc(10px + 10 * var(--k));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: linear-gradient(180deg, #f3faf6 0%, var(--rv-card) 100%);
+}
+.bt-app .bt-rv-advice-text { min-width: 0; }
+.bt-app .bt-rv-summary { margin: 6px 0 0; font-size: calc(15px + 2 * var(--k)); line-height: 1.5; color: var(--rv-sub); }
+.bt-app .bt-rv-points { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 2px; }
+.bt-app .bt-rv-points li { font-size: 14.5px; color: var(--rv-navy); }
+.bt-app .bt-rv-go {
+  flex-shrink: 0;
+  height: calc(40px + 6 * var(--k));
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--rv-green);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+/* -- the two lists ------------------------------------------------------- */
+
+.bt-app .bt-rv-row {
+  margin-top: calc(10px + 10 * var(--k));
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: calc(14px + 10 * var(--k));
+}
+.bt-app .bt-rv-row .bt-rv-card { min-height: 0; display: flex; flex-direction: column; }
+.bt-app .bt-rv-list {
+  margin: 8px 0 0;
+  padding: 0 6px 0 0;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+}
+.bt-app .bt-rv-list li { padding: 10px 0; border-top: 1px solid #f1eeea; }
+.bt-app .bt-rv-list li:first-child { border-top: 0; padding-top: 4px; }
+.bt-app .bt-rv-q { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.4; color: var(--rv-navy); }
+.bt-app .bt-rv-answers { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 14px; font-weight: 700; }
+.bt-app .bt-rv-answers .is-wrong { color: var(--rv-red); }
+.bt-app .bt-rv-answers .is-right { color: var(--rv-green); }
+.bt-app .bt-rv-why { margin: 4px 0 0; font-size: 13.5px; font-style: italic; color: var(--rv-muted); }
+.bt-app .bt-rv-explain { margin: 4px 0 0; font-size: 14px; line-height: 1.45; color: var(--rv-sub); }
+.bt-app .bt-rv-hint { margin: 6px 0 0; font-size: 14px; line-height: 1.45; color: var(--rv-sub); }
+.bt-app .bt-rv-hint b { color: var(--rv-navy); }
+.bt-app .bt-rv-tags { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.bt-app .bt-rv-tags span {
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: #f1efe9;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--rv-sub);
+}
+.bt-app .bt-rv-tags span.is-good { background: var(--rv-green-bg); color: var(--rv-green); }
+
+@media (max-width: 900px) {
+  .bt-app .bt-rv-row { grid-template-columns: minmax(0, 1fr); }
+  .bt-app .bt-rv-advice { flex-direction: column; align-items: flex-start; }
+}

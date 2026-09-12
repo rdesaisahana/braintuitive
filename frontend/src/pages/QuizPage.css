@@ -1,0 +1,427 @@
+/*
+ * The quiz screen, built to the approved design. Lives inside the SideShell
+ * frame and uses its --k height scale; every class starts with bt-quiz or
+ * bt-art. Colours are measured from the design itself.
+ *
+ * The trophy, lightbulb and leaf, the "Small steps big progress" corner and
+ * the landscape are windows onto the approved artwork, public/quiz-art.webp
+ * (1536 x 1024). For a region of width w at x, background-size is 1536 / w
+ * and background-position is x / (1536 - w); the same for height against 1024.
+ * The small icons multiply onto what is behind them, so the artwork's own
+ * off-white around each one disappears into the card or badge it sits on.
+ */
+
+.bt-app {
+  --q-art: url("/quiz-art.webp");
+  --q-navy: #1a2340;
+  --q-sub: #33405e;
+  --q-eyebrow: #565273;
+  --q-label: #524461;
+  --q-line: #ebe8ee;
+  --q-green: #3b7e62;
+  --q-green-deep: #326b53;
+  --q-bar: #519776;
+  --q-track: #e7e5e7;
+  --q-right-bg: #ecf5f0;
+  --q-right: #4e9d7f;
+  --q-wrong-bg: #fcecee;
+  --q-wrong: #c4515e;
+  --q-note-bg: #ecf5f2;
+  --q-hand: #1f7a55;
+}
+
+/* The design's own, lighter cream -- the artwork along the bottom was drawn
+   on it, and on the app's usual cream it would sit in a pale box. */
+.bt-app:has(.bt-quiz) { --bt-bg: #fefbf6; --bt-top: #fefcf8; }
+
+.bt-app .bt-quiz {
+  max-width: 1240px;
+  display: grid;
+  grid-template-columns: minmax(0, 820px) clamp(260px, 24vw, 320px);
+  gap: clamp(20px, 2.6vw, 36px);
+  align-items: start;
+}
+.bt-app .bt-quiz-loading { margin: 0; font-size: 15px; color: var(--bt-muted); }
+.bt-app .bt-quiz-error {
+  margin: 14px 0 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--bt-error-bg);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bt-error);
+}
+
+/* -- heading ---------------------------------------------------------- */
+
+.bt-app .bt-quiz-back {
+  padding: 4px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #192f55;
+  cursor: pointer;
+}
+.bt-app .bt-quiz-back:hover { text-decoration: underline; }
+.bt-app .bt-quiz-back svg { width: 20px; height: 20px; }
+
+.bt-app .bt-quiz-head {
+  margin-top: calc(4px + 10 * var(--k));
+  padding: 0 clamp(0px, 3vw, 56px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.bt-app .bt-quiz-eyebrow {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--q-eyebrow);
+}
+.bt-app .bt-quiz h1 {
+  margin: 4px 0 0;
+  font-size: calc(24px + 8 * var(--k));
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--q-navy);
+}
+.bt-app .bt-quiz-sub { margin: 6px 0 0; font-size: 15.5px; color: var(--q-sub); }
+
+.bt-app .bt-quiz-badge {
+  flex-shrink: 0;
+  padding: 10px 18px 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 16px;
+  /* Starts on the trophy's own ground, so the trophy needs no blending. */
+  background: linear-gradient(90deg, #fdf7f2 0%, #faeee8 100%);
+  box-shadow: 0 10px 24px -18px rgba(150, 90, 50, 0.45);
+}
+.bt-app .bt-quiz-badge b { display: block; font-size: 15px; font-weight: 800; color: var(--q-navy); }
+.bt-app .bt-quiz-badge small { display: block; font-size: 12.5px; color: var(--q-sub); }
+
+/* Trophy: 58 x 56 at (953, 118). */
+.bt-app .bt-art-trophy {
+  width: 44px;
+  aspect-ratio: 58 / 56;
+  flex-shrink: 0;
+  background: var(--q-art) no-repeat;
+  background-size: 2648.28% auto;
+  background-position: 64.479% 12.19%;
+}
+
+.bt-app .bt-quiz-progress {
+  margin-top: calc(6px + 12 * var(--k));
+  padding: 0 clamp(0px, 3vw, 56px);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.bt-app .bt-quiz-bar { height: 12px; flex: 1; overflow: hidden; border-radius: 999px; background: var(--q-track); }
+.bt-app .bt-quiz-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--q-bar);
+  transition: width 0.3s ease;
+}
+.bt-app .bt-quiz-count { font-size: 16px; font-variant-numeric: tabular-nums; color: var(--q-navy); }
+
+/* -- the question ----------------------------------------------------- */
+
+.bt-app .bt-quiz-card {
+  margin-top: calc(6px + 12 * var(--k));
+  padding: calc(12px + 12 * var(--k)) 24px calc(10px + 10 * var(--k));
+  border-radius: 20px;
+  background: #fffefd;
+  box-shadow: 0 0 0 1px #f0ede9, 0 20px 44px -32px rgba(60, 50, 80, 0.4);
+}
+.bt-app .bt-quiz-label { margin: 0; font-size: 14px; font-weight: 700; color: var(--q-label); }
+.bt-app .bt-quiz-card h2 {
+  margin: 4px 0 0;
+  font-size: calc(18px + 3 * var(--k));
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--q-navy);
+}
+
+.bt-app .bt-quiz-options { margin-top: calc(8px + 8 * var(--k)); display: grid; gap: calc(5px + 4 * var(--k)); }
+.bt-app .bt-quiz-option {
+  min-height: calc(38px + 12 * var(--k));
+  padding: 5px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1.5px solid var(--q-line);
+  border-radius: 14px;
+  background: #fffefe;
+  font: inherit;
+  text-align: left;
+  color: var(--q-navy);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.bt-app .bt-quiz-option:not(:disabled):hover { border-color: #b9d8c8; background: #f7fbf9; }
+.bt-app .bt-quiz-option:disabled { cursor: default; }
+.bt-app .bt-quiz-letter {
+  width: calc(30px + 4 * var(--k));
+  height: calc(30px + 4 * var(--k));
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--q-navy);
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 800;
+}
+.bt-app .bt-quiz-option-text { font-size: 15.5px; line-height: 1.45; }
+.bt-app .bt-quiz-option.is-right { border-color: var(--q-right-bg); background: var(--q-right-bg); }
+.bt-app .bt-quiz-option.is-right .bt-quiz-letter { border-color: var(--q-right); background: var(--q-right); color: #ffffff; }
+.bt-app .bt-quiz-option.is-wrong { border-color: var(--q-wrong-bg); background: var(--q-wrong-bg); }
+.bt-app .bt-quiz-option.is-wrong .bt-quiz-letter { border-color: var(--q-wrong); background: var(--q-wrong); color: #ffffff; }
+.bt-app .bt-quiz-option.is-muted { opacity: 0.55; }
+
+/* True or false: the two answers side by side, big enough to tap. */
+.bt-app .bt-quiz-kind { font-weight: 700; }
+.bt-app .bt-quiz-options.is-tf { grid-template-columns: 1fr 1fr; gap: calc(10px + 6 * var(--k)); }
+.bt-app .bt-quiz-options.is-tf .bt-quiz-option { min-height: calc(48px + 16 * var(--k)); justify-content: center; gap: 12px; }
+.bt-app .bt-quiz-options.is-tf .bt-quiz-letter { font-size: 16px; }
+.bt-app .bt-quiz-options.is-tf .bt-quiz-option-text { font-size: 18px; font-weight: 800; }
+
+.bt-app .bt-quiz-hint { margin-top: calc(8px + 8 * var(--k)); }
+.bt-app .bt-quiz-hint-button {
+  height: calc(34px + 6 * var(--k));
+  padding: 0 18px 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid var(--q-line);
+  border-radius: 999px;
+  background: #fffefe;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--q-navy);
+  cursor: pointer;
+}
+.bt-app .bt-quiz-hint-button:hover { border-color: #e7d9a8; }
+.bt-app .bt-quiz-hint-text {
+  margin: 0;
+  padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 14px;
+  background: #fdf6e4;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--q-navy);
+}
+/* Lightbulb: 21 x 32 at (351, 705). */
+.bt-app .bt-art-bulb {
+  width: 17px;
+  aspect-ratio: 21 / 32;
+  flex-shrink: 0;
+  background: var(--q-art) no-repeat;
+  background-size: 7314.29% auto;
+  background-position: 23.168% 71.069%;
+  mix-blend-mode: multiply;
+}
+
+.bt-app .bt-quiz-feedback { margin-top: calc(12px + 6 * var(--k)); display: grid; gap: 10px; }
+.bt-app .bt-quiz-correct { margin: 0; font-size: 20px; font-weight: 800; color: var(--q-green); }
+.bt-app .bt-quiz-notquite { margin: 0; font-size: 20px; font-weight: 800; color: var(--q-wrong); }
+.bt-app .bt-quiz-why {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--q-wrong-bg);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--q-navy);
+}
+.bt-app .bt-quiz-explain {
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--bt-bg);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--q-navy);
+}
+.bt-app .bt-quiz-explain p { margin: 4px 0 0; }
+
+.bt-app .bt-quiz-nav {
+  margin-top: calc(8px + 12 * var(--k));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bt-app .bt-quiz-prev,
+.bt-app .bt-quiz-next {
+  height: calc(38px + 6 * var(--k));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 15.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bt-app .bt-quiz-prev {
+  min-width: 116px;
+  padding: 0 22px;
+  border: 1.5px solid var(--q-line);
+  background: #fffefe;
+  color: var(--q-navy);
+}
+.bt-app .bt-quiz-next {
+  min-width: 200px;
+  padding: 0 28px;
+  border: 0;
+  background: var(--q-green);
+  color: #ffffff;
+}
+.bt-app .bt-quiz-next:hover { background: var(--q-green-deep); }
+.bt-app .bt-quiz-prev:disabled,
+.bt-app .bt-quiz-next:disabled { opacity: 0.5; cursor: default; }
+.bt-app .bt-quiz-prev svg,
+.bt-app .bt-quiz-next svg { width: 20px; height: 20px; }
+
+/* -- the progress column ---------------------------------------------- */
+
+.bt-app .bt-quiz-aside { display: grid; gap: 8px; }
+.bt-app .bt-quiz-progress-card {
+  padding: calc(18px + 8 * var(--k)) 22px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 20px;
+  background: #fffefd;
+  box-shadow: 0 0 0 1px #f0ede9, 0 20px 44px -32px rgba(60, 50, 80, 0.4);
+}
+.bt-app .bt-quiz-progress-card h2 {
+  align-self: flex-start;
+  margin: 0;
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--q-navy);
+}
+.bt-app .bt-quiz-ring { position: relative; width: calc(112px + 16 * var(--k)); margin-top: calc(10px + 6 * var(--k)); }
+.bt-app .bt-quiz-ring svg { display: block; width: 100%; height: auto; }
+.bt-app .bt-quiz-ring-track { fill: none; stroke: #e9ebed; stroke-width: 9; }
+.bt-app .bt-quiz-ring-fill { fill: none; stroke: #4f9a76; stroke-width: 9; stroke-linecap: round; transition: stroke-dasharray 0.3s ease; }
+.bt-app .bt-quiz-ring > span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--q-navy);
+}
+.bt-app .bt-quiz-ring-label { margin: 10px 0 0; font-size: 15px; color: var(--q-sub); }
+.bt-app .bt-quiz-track {
+  width: 100%;
+  margin-top: calc(12px + 6 * var(--k));
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 14px;
+  /* The leaf's own ground, so it needs no blending. */
+  background: #edf6f2;
+}
+.bt-app .bt-quiz-track b { display: block; font-size: 14.5px; font-weight: 800; color: var(--q-navy); }
+.bt-app .bt-quiz-track small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--q-sub); }
+/* Leaf: 30 x 35 at (1219, 367). */
+.bt-app .bt-art-leaf {
+  width: 26px;
+  aspect-ratio: 30 / 35;
+  flex-shrink: 0;
+  background: var(--q-art) no-repeat;
+  background-size: 5120% auto;
+  background-position: 80.943% 37.108%;
+}
+
+.bt-app .bt-quiz-cheer { position: relative; }
+.bt-app .bt-quiz-cheer img { display: block; width: 100%; height: auto; }
+.bt-app .bt-quiz-waytogo {
+  /* Just above the picture's own teal hearts, which finish the note as they
+     do in the design. */
+  position: absolute;
+  top: -7%;
+  left: 55%;
+  z-index: 1;
+  margin: 0;
+  font-family: var(--bt-hand);
+  font-size: calc(26px + 4 * var(--k));
+  font-weight: 600;
+  line-height: 1;
+  color: var(--q-hand);
+  transform: rotate(-10deg);
+}
+
+/* -- the bottom of the page, from the artwork -------------------------- */
+
+/* No z-index: behind the columns, over the page's own cream. The corner and
+   the landscape are cut at x = 215 of the artwork and scaled together, so
+   they meet in one continuous line along the bottom. */
+.bt-app .bt-quiz-floor { position: absolute; inset: auto 0 0 0; pointer-events: none; }
+/* Corner: 215 x 383 at (0, 630) -- the note and its plant. */
+.bt-app .bt-art-corner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 14%;
+  aspect-ratio: 215 / 383;
+  background: var(--q-art) no-repeat;
+  background-size: 714.42% auto;
+  background-position: 0% 98.284%;
+}
+/* Landscape: 1321 x 161 at (215, 852). */
+.bt-app .bt-art-land {
+  position: absolute;
+  left: 14%;
+  right: 0;
+  bottom: 0;
+  aspect-ratio: 1321 / 161;
+  background: var(--q-art) no-repeat;
+  background-size: 116.276% auto;
+  background-position: 100% 98.725%;
+}
+
+@media (max-width: 1100px) {
+  .bt-app .bt-quiz { grid-template-columns: minmax(0, 1fr); }
+  .bt-app .bt-quiz-aside { grid-template-columns: 1fr 1fr; align-items: end; }
+}
+@media (max-width: 900px) {
+  .bt-app .bt-quiz-head { flex-wrap: wrap; padding: 0; }
+  .bt-app .bt-quiz-progress { padding: 0; }
+  .bt-app .bt-quiz-card { padding: 18px 16px; }
+  .bt-app .bt-quiz-next { min-width: 0; flex: 1; }
+  .bt-app .bt-quiz-aside { grid-template-columns: 1fr; margin-bottom: 120px; }
+}
+
+/* The children stand at the foot of the window, on the landscape, rather than
+   hanging under the progress card with empty sky beneath them. Only where the
+   page is one window high and the progress sits in its own column. */
+@media (min-width: 1101px) and (min-height: 600px) {
+  .bt-app.is-fit .bt-quiz { min-height: 100%; }
+  .bt-app.is-fit .bt-quiz-aside { align-self: stretch; display: flex; flex-direction: column; }
+  /* Down past the frame's bottom padding, so they meet the edge of the window. */
+  .bt-app.is-fit .bt-quiz-cheer { margin-top: auto; margin-bottom: calc(-8px - 2 * var(--k)); }
+}

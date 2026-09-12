@@ -1,0 +1,408 @@
+/*
+ * Rewards, built to the approved sticker sheet. Lives inside the SideShell
+ * frame and uses its --k height scale; every class starts with bt-rw. The
+ * colours are measured from the sheet.
+ */
+
+.bt-app {
+  --rw-navy: #0f1d44;
+  --rw-sub: #394568;
+  --rw-green: #2d6e54;
+  --rw-green-deep: #245a45;
+  --rw-selected: #45856e;
+  --rw-tab-on: #ffe2e0;
+  --rw-tab-off: #fbf4ee;
+  --rw-card: #fefdfa;
+  --rw-card-line: #e7e7e5;
+  --rw-stats: #fdf9f5;
+  /* The right-hand column, kept clear for the handwritten note. */
+  --rw-col: clamp(120px, 12vw, 180px);
+  /* Both notes start here: just below the sidebar's four buttons. */
+  --rw-note-top: calc(222px + 36 * var(--k));
+}
+
+.bt-app .bt-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.bt-app .bt-rw {
+  max-width: 1280px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rw-col);
+  gap: clamp(12px, 2vw, 28px);
+}
+.bt-app .bt-rw-main { min-width: 0; }
+
+.bt-app .bt-rw h1 {
+  margin: 0;
+  font-size: calc(28px + 8 * var(--k));
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--rw-navy);
+}
+.bt-app .bt-rw-sub { margin: calc(2px + 4 * var(--k)) 0 0; font-size: 15.5px; color: var(--rw-sub); }
+.bt-app .bt-rw-loading { margin: 16px 0 0; font-size: 15px; color: var(--bt-muted); }
+.bt-app .bt-rw-error {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--bt-error-bg);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bt-error);
+}
+
+/* -- the banner: the sticker, with live words where its own were ---------- */
+
+.bt-app .bt-rw-banner {
+  position: relative;
+  width: 100%;
+  max-width: calc(760px + 300 * var(--k));
+  margin-top: calc(-18px + 6 * var(--k));
+  container-type: inline-size;
+}
+.bt-app .bt-rw-banner img { display: block; width: 100%; height: auto; }
+/* Placed where the sticker's own words were: from x 44 and y 157 of its
+   1260 x 300, and sized from their height, so they sit in the peach box. */
+.bt-app .bt-rw-banner-text { position: absolute; top: 51%; left: 3.5%; width: 57%; }
+.bt-app .bt-rw-banner-title {
+  margin: 0;
+  font-size: 3.05cqw;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: #111724;
+}
+.bt-app .bt-rw-banner-sub { margin: 1.1cqw 0 0; font-size: 1.72cqw; line-height: 1.45; color: var(--rw-sub); }
+
+/* -- the four stats ----------------------------------------------------- */
+
+.bt-app .bt-rw-stats {
+  margin: calc(8px + 10 * var(--k)) 0 0;
+  padding: calc(8px + 8 * var(--k)) 12px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-radius: 18px;
+  background: var(--rw-stats);
+  box-shadow: 0 0 0 1px #efe9e2;
+}
+.bt-app .bt-rw-stat {
+  padding: 0 clamp(10px, 1.6vw, 24px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.bt-app .bt-rw-stat + .bt-rw-stat { border-left: 1.5px solid #ebe4da; }
+.bt-app .bt-rw-stat img { width: calc(36px + 12 * var(--k)); height: auto; flex-shrink: 0; }
+.bt-app .bt-rw-stat dd { margin: 0; display: grid; line-height: 1.2; }
+.bt-app .bt-rw-stat b {
+  font-size: calc(19px + 5 * var(--k));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-navy);
+}
+.bt-app .bt-rw-stat span { font-size: calc(13.5px + 2 * var(--k)); color: var(--rw-sub); }
+
+/* -- tabs --------------------------------------------------------------- */
+
+.bt-app .bt-rw-tabs {
+  margin-top: calc(10px + 10 * var(--k));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bt-app .bt-rw-tabs [role="tablist"] { display: flex; gap: 20px; }
+.bt-app .bt-rw-tabs [role="tab"] {
+  min-width: calc(150px + 50 * var(--k));
+  height: calc(38px + 10 * var(--k));
+  padding: 0 24px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--rw-tab-off);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--rw-sub);
+  cursor: pointer;
+}
+.bt-app .bt-rw-tabs [role="tab"][aria-selected="true"] {
+  background: var(--rw-tab-on);
+  font-weight: 800;
+  color: var(--rw-navy);
+  box-shadow: 0 8px 18px -14px rgba(200, 80, 80, 0.6);
+}
+.bt-app .bt-rw-how {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rw-green);
+  cursor: pointer;
+}
+.bt-app .bt-rw-how:hover { text-decoration: underline; }
+.bt-app .bt-rw-guide {
+  margin-top: 10px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--rw-stats);
+  box-shadow: 0 0 0 1px #efe9e2;
+  font-size: 14px;
+  color: var(--rw-sub);
+}
+.bt-app .bt-rw-guide ul { margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; }
+.bt-app .bt-rw-guide b { color: var(--rw-green); }
+.bt-app .bt-rw-guide p { margin: 8px 0 0; }
+
+/* -- the sliding row ---------------------------------------------------- */
+
+/* A few to a view (--rw-per, set per row), sliding sideways for the rest. */
+.bt-app .bt-rw-scroller {
+  --rw-gap: calc(10px + 8 * var(--k));
+  margin-top: calc(6px + 8 * var(--k));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bt-app .bt-rw-cards {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  padding: 4px 4px 10px;
+  display: flex;
+  gap: var(--rw-gap);
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x proximity;
+  scroll-padding: 4px;
+  scrollbar-width: none;
+}
+.bt-app .bt-rw-cards::-webkit-scrollbar { display: none; }
+.bt-app .bt-rw-cards > li {
+  flex: 0 0 calc((100% - (var(--rw-per) - 1) * var(--rw-gap)) / var(--rw-per));
+  scroll-snap-align: start;
+}
+.bt-app .bt-rw-arrow {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #e7e1d8;
+  border-radius: 50%;
+  background: #ffffff;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--rw-navy);
+  cursor: pointer;
+}
+.bt-app .bt-rw-arrow:hover:not(:disabled) { border-color: var(--rw-green); color: var(--rw-green); }
+.bt-app .bt-rw-arrow:disabled { opacity: 0.3; cursor: default; }
+
+/* -- character cards ---------------------------------------------------- */
+
+.bt-app .bt-rw-card {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 18px;
+  background: var(--rw-card);
+  box-shadow: 0 0 0 1px var(--rw-card-line), 0 14px 30px -26px rgba(74, 52, 30, 0.35);
+}
+.bt-app .bt-rw-card.is-selected { box-shadow: 0 0 0 2.5px var(--rw-selected), 0 14px 30px -24px rgba(40, 107, 81, 0.45); }
+/* Four to a view makes the cards wider; the sticker keeps to a height that
+   leaves the page room to fit the window. */
+/* Stickers from two sheets, cut to slightly different shapes: each is shown
+   in the same rounded frame, so every card in the row matches. */
+.bt-app .bt-rw-card-art {
+  display: block;
+  width: 100%;
+  max-width: calc((104px + 40 * var(--k)) * 184 / 152);
+  height: auto;
+  aspect-ratio: 184 / 152;
+  object-fit: cover;
+  border-radius: 14px;
+}
+.bt-app .bt-rw-card.is-locked .bt-rw-card-art { filter: saturate(0.55); opacity: 0.8; }
+.bt-app .bt-rw-card-name { margin: 6px 0 0; font-size: 15.5px; font-weight: 800; color: var(--rw-navy); }
+.bt-app .bt-rw-selected,
+.bt-app .bt-rw-choose {
+  width: 100%;
+  max-width: 190px;
+  height: calc(34px + 6 * var(--k));
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+}
+.bt-app .bt-rw-selected { background: var(--rw-green); color: #ffffff; }
+.bt-app .bt-rw-choose {
+  border: 2px solid var(--rw-green);
+  background: #ffffff;
+  color: var(--rw-green);
+  cursor: pointer;
+}
+.bt-app .bt-rw-choose:not(:disabled):hover { background: #eef6f2; }
+.bt-app .bt-rw-choose:disabled { cursor: default; }
+.bt-app .bt-rw-choose.is-price:disabled { border-color: #d9d3cb; color: var(--rw-sub); }
+.bt-app .bt-rw-choose img { width: 18px; height: auto; }
+
+/* -- badges: little medals ---------------------------------------------- */
+
+.bt-app .bt-rw-medal {
+  --medal-ring: linear-gradient(145deg, #ffd9b0, #e89a5c);
+  --medal-tint: #fff3e8;
+  --medal-ribbon: #f2a46a;
+  padding: 12px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--medal-tint) 0%, var(--rw-card) 62%);
+  box-shadow: 0 0 0 1px var(--rw-card-line), 0 14px 30px -26px rgba(74, 52, 30, 0.35);
+}
+.bt-app .bt-rw-medal.tier-silver { --medal-ring: linear-gradient(145deg, #eef3fb, #a9bcd8); --medal-tint: #eef4fc; --medal-ribbon: #8fb2e0; }
+.bt-app .bt-rw-medal.tier-gold { --medal-ring: linear-gradient(145deg, #fff0b0, #f2b52a); --medal-tint: #fff8de; --medal-ribbon: #f0c24b; }
+.bt-app .bt-rw-medal.tier-platinum { --medal-ring: linear-gradient(145deg, #f1ecff, #ab98ec); --medal-tint: #f4f0ff; --medal-ribbon: #b39ff0; }
+
+.bt-app .bt-rw-medal-art { position: relative; width: calc(66px + 18 * var(--k)); height: calc(74px + 20 * var(--k)); }
+/* Two ribbon tails, peeking out below the medal. */
+.bt-app .bt-rw-medal-ribbon::before,
+.bt-app .bt-rw-medal-ribbon::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 26%;
+  height: 42%;
+  background: var(--medal-ribbon);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+.bt-app .bt-rw-medal-ribbon::before { left: 24%; transform: rotate(14deg); }
+.bt-app .bt-rw-medal-ribbon::after { right: 24%; transform: rotate(-14deg); }
+.bt-app .bt-rw-medal-face {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 84%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 5px solid transparent;
+  border-radius: 50%;
+  background: #fffdf8 padding-box, var(--medal-ring) border-box;
+  box-shadow: 0 6px 14px -8px rgba(74, 52, 30, 0.5), inset 0 -3px 0 rgba(0, 0, 0, 0.05);
+  font-size: calc(24px + 8 * var(--k));
+  line-height: 1;
+  transform: translateX(-50%);
+}
+/* A sparkle on the ones already won. */
+.bt-app .bt-rw-medal.is-earned .bt-rw-medal-face::after {
+  content: "\2728";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 15px;
+}
+.bt-app .bt-rw-medal.is-locked .bt-rw-medal-face { filter: grayscale(1); opacity: 0.55; }
+.bt-app .bt-rw-medal.is-locked .bt-rw-medal-ribbon { filter: grayscale(1); opacity: 0.5; }
+.bt-app .bt-rw-medal-lock {
+  position: absolute;
+  right: 4%;
+  bottom: 18%;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(74, 52, 30, 0.25);
+  font-size: 12px;
+}
+.bt-app .bt-rw-medal-name { margin: 8px 0 0; font-size: 14.5px; font-weight: 800; color: var(--rw-navy); }
+.bt-app .bt-rw-medal-desc {
+  margin: 3px 0 0;
+  min-height: 2.9em;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--rw-sub);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.bt-app .bt-rw-medal-when {
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--medal-tint);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--rw-green);
+}
+.bt-app .bt-rw-medal.is-locked .bt-rw-medal-when { background: #f3efe9; color: var(--rw-sub); }
+
+/* -- the handwritten notes, level with each other ----------------------- */
+
+.bt-app .bt-rw-notes-layer { position: absolute; inset: 0; pointer-events: none; }
+.bt-app .bt-rw-notes-layer img { position: absolute; top: var(--rw-note-top); height: auto; }
+/* Centred in the right-hand column, in the stickers' own hand and green. */
+.bt-app .bt-rw-notes-layer .is-earn {
+  position: absolute;
+  top: var(--rw-note-top);
+  right: calc(44px + (var(--rw-col) - min(150px, var(--rw-col))) / 2);
+  width: min(150px, var(--rw-col));
+  margin: 0;
+  font-family: var(--bt-hand);
+  font-size: calc(30px + 6 * var(--k));
+  font-weight: 600;
+  line-height: 1.05;
+  text-align: center;
+  color: #1c7350;
+  transform: rotate(-8deg);
+}
+.bt-app .bt-rw-notes-layer .is-earn svg { display: block; width: 26px; height: 26px; margin: 6px auto 0; }
+
+/* -- along the bottom --------------------------------------------------- */
+
+/* No z-index: behind the columns, in the corners where the design has them. */
+.bt-app .bt-rw-floor { position: absolute; inset: auto 0 0 0; pointer-events: none; }
+.bt-app .bt-rw-floor img { position: absolute; bottom: 0; height: auto; }
+.bt-app .bt-rw-floor-left .is-plant { left: 0; width: calc(130px + 40 * var(--k)); }
+.bt-app .bt-rw-floor-left .is-heart { left: calc(130px + 30 * var(--k)); bottom: 8px; width: calc(72px + 20 * var(--k)); }
+.bt-app .bt-rw-floor-right .is-bush { right: 0; width: calc(120px + 30 * var(--k)); }
+.bt-app .bt-rw-floor-right .is-plant-b { right: calc(96px + 24 * var(--k)); width: calc(50px + 12 * var(--k)); }
+.bt-app .bt-rw-floor-right .is-books { right: calc(136px + 30 * var(--k)); width: calc(84px + 24 * var(--k)); }
+.bt-app .bt-rw-floor-right .is-plant-a { right: calc(212px + 52 * var(--k)); width: calc(44px + 10 * var(--k)); }
+
+@media (max-width: 1100px) {
+  .bt-app .bt-rw { grid-template-columns: minmax(0, 1fr); }
+  .bt-app .bt-rw-spacer,
+  .bt-app .bt-rw-notes-layer .is-earn,
+  .bt-app .bt-rw-floor-right { display: none; }
+  .bt-app .bt-rw-scroller { --rw-per: 3 !important; }
+}
+@media (max-width: 900px) {
+  .bt-app .bt-rw-notes-layer { display: none; }
+  .bt-app .bt-rw-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; }
+  .bt-app .bt-rw-stat:nth-child(3) { border-left: 0; }
+  .bt-app .bt-rw-tabs { flex-wrap: wrap; }
+  .bt-app .bt-rw-tabs [role="tab"] { min-width: 0; }
+  .bt-app .bt-rw-scroller { --rw-per: 2 !important; margin-bottom: 160px; }
+}

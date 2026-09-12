@@ -1,0 +1,260 @@
+/*
+ * The signed-in frame from the approved design (see SideShell.tsx).
+ *
+ * Scoped under .bt-app, in the same cream, ink and green as the sign-in page,
+ * so the pages still on the older header -- and their palette switcher -- are
+ * untouched. The tokens below are shared by every page built into this frame.
+ */
+
+.bt-app {
+  --bt-bg: #fbf6ee;
+  --bt-top: #fdf9f3;
+  --bt-surface: #fffdf9;
+  --bt-ink: #2a2420;
+  --bt-muted: #756b62;
+  --bt-line: #ebe2d4;
+  --bt-dash: #d8ccbb;
+  --bt-peach: #f9ddd2;
+  --bt-terra: #b0503a;
+  --bt-green: #2e5b45;
+  --bt-green-deep: #244a38;
+  --bt-note: #3e7a56;
+  --bt-orange: #c8743a;
+  --bt-lav: #eceaf7;
+  --bt-lav-ink: #5d61a6;
+  --bt-pink: #f4b8ae;
+  --bt-pink-hover: #efa597;
+  --bt-pink-ink: #3b2622;
+  --bt-sage: #e9f1e5;
+  --bt-sage-2: #d4e6cf;
+  --bt-sage-ink: #2f6a49;
+  --bt-arrow: #b3c1ae;
+  --bt-ok-bg: #e6f2e8;
+  --bt-sun-bg: #fcefd6;
+  --bt-error: #b5362f;
+  --bt-error-bg: #fdecea;
+  --bt-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --bt-hand: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
+  --bt-side-w: 232px;
+  /* 0px on a 640px-tall window, 1px on a 900px one; pages scale their
+     vertical spacing by it so a `fit` page fits the window. */
+  --k: calc(clamp(0px, 100vh - 640px, 260px) / 260);
+
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bt-bg);
+  color: var(--bt-ink);
+  font-family: var(--bt-body);
+}
+
+/* -- top bar ---------------------------------------------------------- */
+
+.bt-app .bt-app-top {
+  position: relative;
+  z-index: 5;
+  height: 68px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--bt-line);
+  background: var(--bt-top);
+}
+.bt-app .bt-app-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--bt-ink);
+  text-decoration: none;
+}
+.bt-app .bt-app-brand svg { width: 34px; height: 34px; flex-shrink: 0; }
+.bt-app .bt-app-brand-text { display: grid; line-height: 1.1; }
+.bt-app .bt-app-brand-text small { margin-top: 2px; font-size: 11.5px; font-weight: 600; letter-spacing: 0; color: var(--bt-muted); }
+.bt-app .bt-app-top-right { display: flex; align-items: center; gap: 14px; }
+/* The star is the approved artwork's own (public/quiz-art.webp, 30x30 at 1270,20). */
+.bt-app .bt-points {
+  height: 38px;
+  padding: 0 16px 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: var(--bt-surface);
+  box-shadow: 0 0 0 1px var(--bt-line);
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #1a2340;
+}
+.bt-app .bt-points-star {
+  width: 24px;
+  height: 24px;
+  background: url("/quiz-art.webp") no-repeat;
+  background-size: 5120% auto;
+  background-position: 84.329% 2.012%;
+  mix-blend-mode: multiply;
+}
+
+.bt-app .bt-account { position: relative; }
+.bt-app .bt-account-button {
+  padding: 5px 8px 5px 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--bt-ink);
+  cursor: pointer;
+}
+.bt-app .bt-account-button:hover { background: rgba(42, 36, 32, 0.05); }
+.bt-app .bt-account-button svg { width: 16px; height: 16px; color: var(--bt-muted); }
+.bt-app .bt-account-initial {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #8b807a;
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+}
+.bt-app .bt-account-avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f6e3d3;
+  font-size: 19px;
+  line-height: 1;
+}
+.bt-app .bt-account-avatar { overflow: hidden; }
+.bt-app .bt-account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.bt-app .bt-account-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 220px;
+  padding: 8px;
+  border-radius: 14px;
+  background: var(--bt-surface);
+  box-shadow: 0 0 0 1px var(--bt-line), 0 18px 40px -18px rgba(74, 52, 30, 0.35);
+}
+.bt-app .bt-account-menu p { margin: 0; padding: 6px 10px; font-size: 12.5px; color: var(--bt-muted); }
+.bt-app .bt-account-menu .bt-account-label {
+  padding-top: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.bt-app .bt-account-menu button {
+  width: 100%;
+  padding: 9px 10px;
+  display: block;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  color: var(--bt-ink);
+  cursor: pointer;
+}
+.bt-app .bt-account-menu button:hover { background: var(--bt-peach); }
+.bt-app .bt-account-menu button[aria-checked="true"]::after { content: "  \2713"; color: var(--bt-green); }
+
+/* -- sidebar and page ------------------------------------------------- */
+
+.bt-app .bt-app-body {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--bt-side-w) minmax(0, 1fr);
+}
+
+.bt-app .bt-side {
+  position: relative;
+  z-index: 1;
+  padding: 26px 18px 0 22px;
+  display: flex;
+  flex-direction: column;
+}
+.bt-app .bt-side ul { margin: 0; padding: 0; display: grid; gap: 6px; list-style: none; }
+.bt-app .bt-nav-item {
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bt-ink);
+  text-decoration: none;
+}
+.bt-app a.bt-nav-item:hover { background: rgba(42, 36, 32, 0.045); }
+.bt-app .bt-nav-item svg { width: 22px; height: 22px; flex-shrink: 0; }
+.bt-app .bt-nav-item.is-active { background: var(--bt-peach); font-weight: 800; color: var(--bt-terra); }
+.bt-app .bt-nav-item[aria-disabled="true"] { cursor: default; }
+.bt-app .bt-side-extra { margin-top: auto; }
+
+.bt-app .bt-app-main {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding: 30px 44px 40px;
+}
+
+.bt-app :focus-visible { outline: 2px solid var(--bt-green); outline-offset: 2px; }
+
+/* -- one window high --------------------------------------------------- */
+
+/* For pages designed not to scroll (SideShell's `fit`). The frame is exactly
+   the window's height and its spacing tightens with --k on shorter screens.
+   The main column can still scroll on its own if a page's content truly
+   cannot fit -- a long unit list, say -- so nothing is ever cut off. */
+@media (min-width: 901px) and (min-height: 600px) {
+  .bt-app.is-fit { height: 100vh; height: 100dvh; overflow: hidden; }
+  .bt-app.is-fit .bt-app-top { height: calc(54px + 14 * var(--k)); }
+  .bt-app.is-fit .bt-app-body { min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .bt-app.is-fit .bt-side { padding-top: calc(14px + 12 * var(--k)); }
+  .bt-app.is-fit .bt-nav-item {
+    padding-top: calc(8px + 3 * var(--k));
+    padding-bottom: calc(8px + 3 * var(--k));
+  }
+  .bt-app.is-fit .bt-app-main {
+    overflow-y: auto;
+    padding: calc(12px + 16 * var(--k)) 44px calc(8px + 2 * var(--k));
+  }
+}
+
+@media (max-width: 900px) {
+  .bt-app .bt-app-top { height: 60px; padding: 0 16px; }
+  .bt-app .bt-app-top-right { gap: 8px; }
+  .bt-app .bt-points { height: 34px; padding: 0 12px 0 10px; }
+  .bt-app .bt-app-body { grid-template-columns: minmax(0, 1fr); }
+  .bt-app .bt-side { padding: 8px 12px 0; }
+  .bt-app .bt-side ul { display: flex; gap: 4px; overflow-x: auto; }
+  .bt-app .bt-nav-item { padding: 9px 12px; white-space: nowrap; }
+  .bt-app .bt-side-extra { display: none; }
+  .bt-app .bt-app-main { padding: 20px 16px 32px; }
+}
+
+/* The narrowest phones: the child's character stands for them; the name is in
+   the menu it opens. */
+@media (max-width: 480px) {
+  .bt-app .bt-account-button > span:nth-of-type(2) { display: none; }
+  .bt-app .bt-app-brand { font-size: 19px; }
+}

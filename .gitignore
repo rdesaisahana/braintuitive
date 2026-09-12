@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Environment & secrets
+.env
+.env.local
+*.pem
+
+# Databases
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/uploads/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/build/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Original artwork, kept locally; the site serves the smaller .webp copies
+design/
+
+# Curriculum PDFs belong to the school that wrote them; not published here
+*.pdf
+
+# Local assistant and editor settings
+.claude/
+
+# Office lock files, present while a workbook is open
+~$*

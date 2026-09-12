@@ -1,0 +1,658 @@
+/*
+ * The Curriculum page, built to the approved design. It lives inside the
+ * SideShell frame and uses that frame's tokens; every class here starts with
+ * bt-cur so nothing collides with the frame or the older pages.
+ *
+ * The page is designed not to scroll. Every vertical size is
+ * "compact + range * --k" (--k runs 0px to 1px as the window goes from 640px
+ * to 900px tall, set by the frame), so the whole screen fits on a small laptop
+ * and opens up to the design's full spacing on a tall monitor.
+ *
+ * The books and the five step icons are the supplied artwork itself,
+ * public/curriculum-steps.webp (2172 x 724), each shown through a window onto
+ * its own part of the picture. The window arithmetic: for a region of width w
+ * at x, background-size is 2172 / w and background-position is x / (2172 - w),
+ * the same for height against 724.
+ */
+
+.bt-app {
+  --bt-art: url("/curriculum-steps.webp");
+  --bt-books-w: calc(180px + 90 * var(--k));
+}
+
+.bt-app .bt-cur { max-width: 860px; }
+
+.bt-app .bt-cur h1 {
+  margin: 0;
+  font-size: calc(26px + 10 * var(--k));
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.bt-app .bt-cur-sub {
+  margin: calc(2px + 6 * var(--k)) 0 0;
+  max-width: 40rem;
+  font-size: calc(15px + 1 * var(--k));
+  line-height: 1.55;
+  color: var(--bt-muted);
+}
+.bt-app .bt-cur-loading { margin: 0; font-size: 15px; color: var(--bt-muted); }
+
+.bt-app .bt-cur-error {
+  margin: calc(10px + 10 * var(--k)) 0 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--bt-error-bg);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bt-error);
+}
+
+/* -- the drop zone ---------------------------------------------------- */
+
+/* As in the design: a white card, and the dashed zone inside it. */
+.bt-app .bt-cur-drop-card {
+  margin-top: calc(10px + 10 * var(--k));
+  padding: calc(6px + 8 * var(--k));
+  border-radius: 20px;
+  background: var(--bt-surface);
+  box-shadow: 0 16px 36px -28px rgba(74, 52, 30, 0.35);
+}
+.bt-app .bt-cur-drop {
+  padding: calc(12px + 16 * var(--k)) 32px calc(10px + 14 * var(--k));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 2px dashed var(--bt-dash);
+  border-radius: 14px;
+  background: var(--bt-surface);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.bt-app .bt-cur-drop.is-dragging { border-color: var(--bt-note); background: #f3f8f1; }
+
+.bt-app .bt-cur-drop-icon {
+  width: calc(36px + 16 * var(--k));
+  height: calc(36px + 16 * var(--k));
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--bt-lav);
+  color: var(--bt-lav-ink);
+}
+.bt-app .bt-cur-drop-icon svg { width: calc(22px + 6 * var(--k)); height: calc(22px + 6 * var(--k)); }
+.bt-app .bt-cur-drop-title {
+  margin: calc(6px + 10 * var(--k)) 0 0;
+  font-size: calc(17px + 2 * var(--k));
+  font-weight: 800;
+}
+.bt-app .bt-cur-drop-or {
+  margin: calc(2px + 6 * var(--k)) 0 calc(6px + 8 * var(--k));
+  font-size: 14px;
+  font-weight: 700;
+}
+.bt-app .bt-cur-hint { margin: calc(6px + 6 * var(--k)) 0 0; font-size: 13px; color: var(--bt-muted); }
+
+.bt-app .bt-cur-pink {
+  min-width: 200px;
+  height: calc(40px + 6 * var(--k));
+  padding: 0 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--bt-pink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--bt-pink-ink);
+  cursor: pointer;
+}
+.bt-app .bt-cur-pink:hover { background: var(--bt-pink-hover); }
+.bt-app .bt-cur-pink:disabled { opacity: 0.6; cursor: default; }
+.bt-app .bt-cur-pink svg { width: 18px; height: 18px; }
+
+/* A file sitting in the zone: staged for upload, or the one in use. */
+.bt-app .bt-cur-file {
+  width: 100%;
+  max-width: 520px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 14px;
+  background: var(--bt-bg);
+  text-align: left;
+}
+.bt-app .bt-cur-file .bt-cur-drop-icon { width: 46px; height: 46px; border-radius: 12px; }
+.bt-app .bt-cur-file .bt-cur-drop-icon svg { width: 24px; height: 24px; }
+.bt-app .bt-cur-file.is-in-use { background: var(--bt-ok-bg); }
+.bt-app .bt-cur-file.is-in-use .bt-cur-drop-icon { background: var(--bt-sage-2); color: var(--bt-sage-ink); }
+.bt-app .bt-cur-file-text { min-width: 0; flex: 1; }
+.bt-app .bt-cur-file-text b {
+  display: block;
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bt-app .bt-cur-file-text small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--bt-muted); }
+.bt-app .bt-cur-remove {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--bt-line);
+  border-radius: 50%;
+  background: var(--bt-surface);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--bt-muted);
+  cursor: pointer;
+}
+.bt-app .bt-cur-remove:hover { border-color: var(--bt-error); color: var(--bt-error); }
+
+.bt-app .bt-cur-grade {
+  width: 100%;
+  max-width: 520px;
+  margin-top: calc(10px + 6 * var(--k));
+  display: grid;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: left;
+}
+.bt-app .bt-cur-grade em { font-style: normal; font-weight: 600; color: var(--bt-muted); }
+.bt-app .bt-cur-grade select {
+  height: calc(38px + 6 * var(--k));
+  padding: 0 12px;
+  border: 1px solid var(--bt-line);
+  border-radius: 10px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bt-ink);
+}
+.bt-app .bt-cur-warn {
+  width: 100%;
+  max-width: 520px;
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bt-sun-bg);
+  font-size: 13.5px;
+  line-height: 1.5;
+  text-align: left;
+}
+.bt-app .bt-cur-drop .bt-cur-go { margin-top: calc(12px + 6 * var(--k)); }
+
+/* -- what happens next ------------------------------------------------ */
+
+.bt-app .bt-cur-steps {
+  margin-top: calc(8px + 10 * var(--k));
+  padding: calc(10px + 8 * var(--k)) 24px calc(12px + 6 * var(--k));
+  border-radius: 18px;
+  background: var(--bt-sage);
+}
+.bt-app .bt-cur-steps h2 { margin: 0; font-size: calc(15.5px + 1.5 * var(--k)); font-weight: 800; }
+.bt-app .bt-cur-steps-row {
+  margin: calc(8px + 6 * var(--k)) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  list-style: none;
+}
+.bt-app .bt-cur-step {
+  --bt-icon: calc(44px + 16 * var(--k));
+  --bt-badge: calc(20px + 2 * var(--k));
+  --bt-gap: calc(4px + 4 * var(--k));
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+/* The arrow between two steps, midway and level with the icons -- in the
+   pale green of the artwork's own arrows. */
+.bt-app .bt-cur-step + .bt-cur-step::before {
+  content: "\2192";
+  position: absolute;
+  top: calc(var(--bt-badge) + var(--bt-gap) + var(--bt-icon) / 2);
+  left: 0;
+  font-size: calc(22px + 6 * var(--k));
+  line-height: 1;
+  color: #a9ccb7;
+  transform: translate(-50%, -55%);
+}
+.bt-app .bt-cur-step-number {
+  width: var(--bt-badge);
+  height: var(--bt-badge);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #dbebdf;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #1f2d3a;
+}
+/* The icon is the artwork's own circle for that step. Each window is a
+   156px square centred on its circle (the circles are 166px, so the round
+   crop always falls inside the painted green and never shows a white edge). */
+.bt-app .bt-cur-step-icon {
+  width: var(--bt-icon);
+  height: var(--bt-icon);
+  margin-top: var(--bt-gap);
+  border-radius: 50%;
+  background: var(--bt-art) no-repeat;
+  background-size: 1392.31% auto;
+}
+.bt-app .bt-cur-step-icon.is-1 { background-position: 33.879% 44.894%; }
+.bt-app .bt-cur-step-icon.is-2 { background-position: 49.306% 44.894%; }
+.bt-app .bt-cur-step-icon.is-3 { background-position: 64.683% 44.894%; }
+.bt-app .bt-cur-step-icon.is-4 { background-position: 79.960% 44.894%; }
+.bt-app .bt-cur-step-icon.is-5 { background-position: 95.238% 44.894%; }
+.bt-app .bt-cur-step-label {
+  margin-top: calc(4px + 6 * var(--k));
+  font-size: calc(13.5px + 1 * var(--k));
+  font-weight: 800;
+  color: #1f2a37;
+}
+.bt-app .bt-cur-step-note { margin-top: 1px; font-size: 12.5px; white-space: nowrap; color: #5f6b76; }
+.bt-app .bt-cur-step.is-done .bt-cur-step-number,
+.bt-app .bt-cur-step.is-current .bt-cur-step-number { background: var(--bt-sage-ink); color: #ffffff; }
+.bt-app .bt-cur-step.is-current .bt-cur-step-icon {
+  box-shadow: 0 0 0 3px var(--bt-sage), 0 0 0 5px var(--bt-sage-ink);
+}
+
+/* -- state cards: review, building, ready, removing, failed ----------- */
+
+.bt-app .bt-cur-box {
+  margin-top: calc(10px + 12 * var(--k));
+  padding: calc(12px + 12 * var(--k)) 26px;
+  border-radius: 18px;
+  background: var(--bt-surface);
+  box-shadow: 0 16px 36px -26px rgba(74, 52, 30, 0.35);
+}
+.bt-app .bt-cur-box h2 { margin: 0; font-size: calc(18px + 2 * var(--k)); font-weight: 800; }
+.bt-app .bt-cur-box p { margin: calc(3px + 3 * var(--k)) 0 0; font-size: 14px; line-height: 1.55; color: var(--bt-muted); }
+.bt-app .bt-cur-box p b { color: var(--bt-ink); }
+.bt-app .bt-cur-box.is-ok { background: var(--bt-ok-bg); }
+.bt-app .bt-cur-box.is-ok h2 { color: var(--bt-sage-ink); }
+.bt-app .bt-cur-box.is-bad { background: var(--bt-error-bg); }
+.bt-app .bt-cur-box.is-bad h2 { color: var(--bt-error); }
+.bt-app .bt-cur-box.is-bad p { color: var(--bt-ink); }
+
+.bt-app .bt-cur-facts {
+  margin: calc(8px + 6 * var(--k)) 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.bt-app .bt-cur-facts div { padding: calc(4px + 4 * var(--k)) 12px; border-radius: 12px; background: var(--bt-bg); }
+.bt-app .bt-cur-facts dt {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bt-muted);
+}
+.bt-app .bt-cur-facts dd { margin: 1px 0 0; font-size: calc(16px + 2 * var(--k)); font-weight: 800; }
+.bt-app .bt-cur-box .bt-cur-note-warn {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bt-sun-bg);
+  color: var(--bt-ink);
+}
+.bt-app .bt-cur-box .bt-cur-title { margin-top: calc(8px + 6 * var(--k)); font-weight: 800; color: var(--bt-ink); }
+/* Two columns, so a typical guide's units fit beside the steps without scrolling. */
+.bt-app .bt-cur-units {
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(4px + 2 * var(--k));
+  list-style: none;
+}
+.bt-app .bt-cur-units li {
+  padding: calc(4px + 3 * var(--k)) 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  border-radius: 10px;
+  background: var(--bt-bg);
+  font-size: 14px;
+}
+.bt-app .bt-cur-units b { flex-shrink: 0; color: var(--bt-terra); }
+.bt-app .bt-cur-units span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt-app .bt-cur-units small { flex-shrink: 0; font-size: 12px; color: var(--bt-muted); }
+.bt-app .bt-cur-list { margin: 12px 0 0; padding-left: 20px; font-size: 14px; font-weight: 700; line-height: 1.7; }
+
+.bt-app .bt-cur-actions { margin-top: calc(10px + 6 * var(--k)); display: flex; flex-wrap: wrap; gap: 10px; }
+.bt-app .bt-cur-quiet,
+.bt-app .bt-cur-green {
+  height: calc(40px + 4 * var(--k));
+  padding: 0 20px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bt-app .bt-cur-quiet { border: 1px solid var(--bt-line); background: var(--bt-surface); color: var(--bt-ink); }
+.bt-app .bt-cur-quiet:hover { border-color: var(--bt-dash); }
+.bt-app .bt-cur-green { border: 0; background: var(--bt-green); color: #ffffff; }
+.bt-app .bt-cur-green:hover { background: var(--bt-green-deep); }
+.bt-app .bt-cur-quiet:disabled,
+.bt-app .bt-cur-green:disabled { opacity: 0.6; cursor: default; }
+
+.bt-app .bt-cur-running { display: flex; align-items: center; gap: 16px; }
+.bt-app .bt-cur-running h2 { font-size: 18px; }
+.bt-app .bt-cur-spinner {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 3px solid var(--bt-sage-2);
+  border-top-color: var(--bt-sage-ink);
+  border-radius: 50%;
+  animation: bt-cur-spin 0.9s linear infinite;
+}
+@keyframes bt-cur-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .bt-app .bt-cur-spinner { animation-duration: 3s; } }
+
+.bt-app .bt-cur-history h2 {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bt-muted);
+}
+.bt-app .bt-cur-history ul { margin: 10px 0 0; padding: 0; display: grid; gap: 8px; list-style: none; }
+.bt-app .bt-cur-history li { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.bt-app .bt-cur-history .bt-cur-status { width: 84px; flex-shrink: 0; font-weight: 800; color: var(--bt-muted); }
+.bt-app .bt-cur-history .bt-cur-status.is-completed { color: var(--bt-sage-ink); }
+.bt-app .bt-cur-history .bt-cur-status.is-failed { color: var(--bt-error); }
+.bt-app .bt-cur-history .bt-cur-name { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt-app .bt-cur-history .bt-cur-count { flex-shrink: 0; color: var(--bt-muted); }
+
+/* -- need help -------------------------------------------------------- */
+
+.bt-app .bt-cur-help {
+  position: relative;
+  max-width: 540px;
+  margin: calc(10px + 12 * var(--k)) 0 0 clamp(0px, 6vw, 72px);
+  padding: calc(10px + 8 * var(--k)) 22px;
+  display: flex;
+  gap: 16px;
+  border-radius: 16px;
+  background: var(--bt-surface);
+  box-shadow: 0 16px 36px -24px rgba(74, 52, 30, 0.35);
+}
+.bt-app .bt-cur-help-icon {
+  width: calc(36px + 6 * var(--k));
+  height: calc(36px + 6 * var(--k));
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bt-lav);
+  color: var(--bt-lav-ink);
+}
+.bt-app .bt-cur-help-icon svg { width: 21px; height: 21px; }
+.bt-app .bt-cur-help-title { margin: 0; font-size: 15px; font-weight: 800; }
+.bt-app .bt-cur-help-text { margin: calc(2px + 2 * var(--k)) 0 0; font-size: 13.5px; line-height: 1.5; color: var(--bt-muted); }
+.bt-app .bt-cur-help-link {
+  margin-top: calc(6px + 4 * var(--k));
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--bt-ink);
+  cursor: pointer;
+}
+.bt-app .bt-cur-help-link:hover { text-decoration: underline; }
+.bt-app .bt-cur-help-list { margin: 8px 0 0; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: var(--bt-muted); }
+
+/* -- the illustrated floor and the note above the books --------------- */
+
+/* No z-index here on purpose: the books multiply onto the page's own cream,
+   which turns the artwork's white ground invisible, and that only works if
+   the floor is not a separate stacking layer. */
+.bt-app .bt-cur-floor {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: calc(170px + 70 * var(--k));
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 55% 85% at 42% 100%,
+    #f2e4cc 0%,
+    rgba(242, 228, 204, 0.6) 45%,
+    rgba(242, 228, 204, 0) 75%
+  );
+}
+/* The books: the region from (44, 126), 574 x 500, of the artwork. */
+.bt-app .bt-cur-books {
+  position: absolute;
+  left: 6px;
+  bottom: 4px;
+  width: var(--bt-books-w);
+  aspect-ratio: 574 / 500;
+  background: var(--bt-art) no-repeat;
+  background-size: 378.40% auto;
+  background-position: 2.753% 56.25%;
+  mix-blend-mode: multiply;
+}
+.bt-app .bt-cur-plant { position: absolute; right: 16px; bottom: 0; width: calc(140px + 50 * var(--k)); height: auto; }
+
+.bt-app .bt-cur-note {
+  margin: 0 0 calc(var(--bt-books-w) * 500 / 574 + 14px) 8px;
+  font-family: var(--bt-hand);
+  font-size: calc(22px + 5 * var(--k));
+  font-weight: 600;
+  line-height: 1.02;
+  color: var(--bt-note);
+  transform: rotate(-8deg);
+  transform-origin: left center;
+}
+.bt-app .bt-cur-note svg { width: 18px; height: 18px; margin-left: 4px; vertical-align: -2px; color: var(--bt-orange); }
+
+@media (max-width: 900px) {
+  .bt-app { --bt-books-w: 150px; }
+  .bt-app .bt-cur h1 { font-size: 28px; }
+  .bt-app .bt-cur-drop { padding: 30px 18px 24px; }
+  .bt-app .bt-cur-steps-row {
+    grid-template-columns: repeat(5, 104px);
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .bt-app .bt-cur-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bt-app .bt-cur-units { grid-template-columns: minmax(0, 1fr); }
+  .bt-app .bt-cur-help { margin: 24px 0 150px; }
+  .bt-app .bt-cur-plant { width: 110px; }
+}
+
+/* -- one window high: the help bar sits at the foot ---------------------- */
+
+.bt-app.is-fit .bt-cur { min-height: 100%; display: flex; flex-direction: column; }
+
+.bt-app .bt-cur-helpbar {
+  position: relative;
+  margin-top: calc(10px + 10 * var(--k));
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 14px;
+  background: var(--bt-surface);
+  box-shadow: 0 0 0 1px var(--bt-line), 0 12px 26px -22px rgba(74, 52, 30, 0.35);
+}
+.bt-app.is-fit .bt-cur-helpbar { margin-top: auto; }
+.bt-app .bt-cur-helpbar .bt-cur-help-icon { width: 30px; height: 30px; }
+.bt-app .bt-cur-helpbar .bt-cur-help-icon svg { width: 17px; height: 17px; }
+.bt-app .bt-cur-helpbar p { margin: 0; min-width: 0; flex: 1; font-size: 13.5px; color: var(--bt-muted); }
+.bt-app .bt-cur-helpbar p b { color: var(--bt-ink); }
+.bt-app .bt-cur-helpbar .bt-cur-help-link { margin: 0; flex-shrink: 0; }
+.bt-app .bt-cur-help-pop {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 10;
+  width: min(440px, 100%);
+  margin: 0;
+  padding: 12px 16px 12px 32px;
+  border-radius: 14px;
+  background: var(--bt-surface);
+  box-shadow: 0 0 0 1px var(--bt-line), 0 18px 40px -18px rgba(74, 52, 30, 0.35);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--bt-muted);
+}
+
+/* -- your child ---------------------------------------------------------- */
+
+/* One line when the child is set up: the label, the child and their
+   character, and "+ Add a child" at the end. The form, when open, takes the
+   line below. */
+.bt-app .bt-cur-child {
+  margin-top: calc(6px + 8 * var(--k));
+  padding: calc(6px + 4 * var(--k)) 18px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 18px;
+  border-radius: 18px;
+  background: var(--bt-surface);
+  box-shadow: 0 16px 36px -28px rgba(74, 52, 30, 0.35);
+}
+.bt-app .bt-cur-child-head { display: contents; }
+.bt-app .bt-cur-child h2 { grid-column: 1; grid-row: 1; }
+.bt-app .bt-cur-child-add { grid-column: 3; grid-row: 1; }
+.bt-app .bt-cur-child .bt-cur-kids { grid-column: 2; grid-row: 1; }
+.bt-app .bt-cur-child .bt-cur-child-form,
+.bt-app .bt-cur-child .bt-cur-error { grid-column: 1 / -1; }
+.bt-app .bt-cur-child h2 { margin: 0; font-size: 15.5px; font-weight: 800; }
+.bt-app .bt-cur-child-add {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--bt-green);
+  cursor: pointer;
+}
+.bt-app .bt-cur-child-add:hover { text-decoration: underline; }
+.bt-app .bt-cur-kids { margin: 0; padding: 0; display: grid; gap: 6px; list-style: none; }
+.bt-app .bt-cur-kids li { display: flex; align-items: center; gap: 14px; }
+.bt-app .bt-cur-kid-art { width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; object-fit: cover; font-size: 28px; text-align: center; }
+.bt-app .bt-cur-kid-name { min-width: 0; flex: 1; display: grid; }
+.bt-app .bt-cur-kid-name b { font-size: 15.5px; }
+.bt-app .bt-cur-kid-name small { font-size: 12.5px; color: var(--bt-muted); }
+.bt-app .bt-cur-child-form { margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.bt-app .bt-cur-child-form input,
+.bt-app .bt-cur-child-form select {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--bt-line);
+  border-radius: 10px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  color: var(--bt-ink);
+}
+.bt-app .bt-cur-child-form input { min-width: 0; flex: 1 1 160px; }
+.bt-app .bt-cur-child-form select:invalid { color: var(--bt-muted); }
+.bt-app .bt-cur-child-form .bt-cur-green,
+.bt-app .bt-cur-child-form .bt-cur-quiet { height: 40px; }
+.bt-app .bt-cur-starters { display: flex; gap: 6px; }
+.bt-app .bt-cur-starter {
+  width: 64px;
+  padding: 4px 4px 3px;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--bt-muted);
+  cursor: pointer;
+}
+.bt-app .bt-cur-starter img { width: 100%; height: 34px; object-fit: cover; border-radius: 8px; }
+.bt-app .bt-cur-starter:hover { border-color: var(--bt-line); }
+.bt-app .bt-cur-starter[aria-checked="true"] { border-color: var(--bt-green); color: var(--bt-green); }
+
+@media (max-width: 900px) {
+  .bt-app .bt-cur-helpbar { flex-wrap: wrap; margin-bottom: 150px; }
+  .bt-app .bt-cur-kids li { flex-wrap: wrap; }
+}
+
+/* -- removing a child ---------------------------------------------------- */
+
+.bt-app .bt-cur-kid-remove {
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bt-muted);
+  cursor: pointer;
+}
+.bt-app .bt-cur-kid-remove:hover { background: var(--bt-error-bg); color: var(--bt-error); }
+.bt-app .bt-cur-kids li.is-confirming { padding: 4px 0; }
+.bt-app .bt-cur-kid-confirm { min-width: 0; flex: 1; font-size: 13.5px; line-height: 1.45; color: var(--bt-ink); }
+.bt-app .bt-cur-kid-confirm b { color: var(--bt-error); }
+.bt-app .bt-cur-kids li.is-confirming .bt-cur-quiet,
+.bt-app .bt-cur-danger { height: 38px; padding: 0 16px; border-radius: 12px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.bt-app .bt-cur-danger { border: 0; background: var(--bt-error); color: #ffffff; }
+.bt-app .bt-cur-danger:hover { background: #9c2c26; }
+.bt-app .bt-cur-danger:disabled { opacity: 0.6; cursor: default; }
+
+/* -- which topics can be started yet ------------------------------------- */
+
+.bt-app .bt-cur-ready { margin-top: calc(8px + 4 * var(--k)); }
+.bt-app .bt-cur-box .bt-cur-ready-head { margin: 0; font-size: 14px; color: var(--bt-muted); }
+.bt-app .bt-cur-ready-head b { color: var(--bt-sage-ink); }
+.bt-app .bt-cur-ready-list {
+  margin: 6px 0 0;
+  padding: 0 6px 0 0;
+  /* Scrolls inside the box, so the page still fits the window. */
+  max-height: calc(70px + 56 * var(--k));
+  overflow-y: auto;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+.bt-app .bt-cur-ready-list li {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+}
+.bt-app .bt-cur-ready-num { font-weight: 800; color: var(--bt-ink); }
+.bt-app .bt-cur-ready-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--bt-ink); }
+.bt-app .bt-cur-ready-levels { display: inline-flex; gap: 4px; }
+.bt-app .bt-cur-ready-levels span {
+  min-width: 64px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--bt-muted);
+}
+.bt-app .bt-cur-ready-levels span.is-ready { background: #ffffff; color: var(--bt-sage-ink); }

@@ -1,0 +1,368 @@
+/*
+ * The sign-up / log-in screen, built to the approved design.
+ *
+ * Scoped under .bt-signup on purpose. This page has its own palette and fonts
+ * -- cream ground, forest-green action, warm orange accent; Fraunces, Nunito
+ * and Caveat -- while every other page keeps the theme it has until it is
+ * redesigned too. Every rule hangs off .bt-signup so nothing here can leak.
+ *
+ * On a desktop the children's picture is the background of the left panel,
+ * with the headline set in its sky. The panel and the card are one row, so
+ * they are always exactly the same height, and they meet with no gap. The
+ * page is only as wide as that needs; the top bar shares the width, so the
+ * brand lines up over the picture and Log in over the card.
+ *
+ * On a desktop-sized window the whole page fits without scrolling. --k runs
+ * from 0px on a 640px-tall window to 1px on a 900px one; each vertical space
+ * is "compact + range * --k", so the design's full spacing shows on tall
+ * screens and tightens evenly on shorter ones.
+ */
+
+.bt-signup {
+  --bt-bg: #fbf6ee;
+  --bt-card: #fcf3e7;
+  --bt-ink: #2a2420;
+  --bt-muted: #756b62;
+  --bt-faint: #b1a89e;
+  --bt-line: #ebe3d7;
+  --bt-line-strong: #d8cebf;
+  --bt-green: #2e5b45;
+  --bt-green-deep: #244a38;
+  --bt-note: #3e7a56;
+  --bt-orange: #c8743a;
+  --bt-link: #2f6db3;
+  --bt-error: #b5362f;
+  --bt-error-bg: #fdecea;
+  --bt-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --bt-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --bt-hand: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
+
+  --k: calc(clamp(0px, 100vh - 640px, 260px) / 260);
+  --bt-gutter: clamp(20px, 4vw, 72px);
+  --bt-max: 1400px;
+  --bt-card-w: clamp(380px, 36vw, 560px);
+  --bt-width: var(--bt-max);
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bt-bg);
+  color: var(--bt-ink);
+  font-family: var(--bt-body);
+}
+
+/* -- top bar ---------------------------------------------------------- */
+
+.bt-signup .bt-top {
+  width: 100%;
+  max-width: var(--bt-width);
+  margin: 0 auto;
+  padding: calc(8px + 12 * var(--k)) var(--bt-gutter) calc(4px + 4 * var(--k));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.bt-signup .bt-brand { display: flex; align-items: center; gap: 12px; }
+.bt-signup .bt-brand svg { width: 46px; height: 46px; flex-shrink: 0; }
+.bt-signup .bt-wordmark {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.bt-signup .bt-tagline { margin: 3px 0 0; font-size: 13.5px; color: var(--bt-muted); }
+.bt-signup .bt-switch { margin: 0; font-size: 13.5px; color: var(--bt-muted); text-align: right; }
+.bt-signup .bt-switch button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 800;
+  color: var(--bt-ink);
+  cursor: pointer;
+}
+.bt-signup .bt-switch button:hover { text-decoration: underline; }
+
+/* -- the two columns -------------------------------------------------- */
+
+.bt-signup .bt-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--bt-width);
+  margin: 0 auto;
+  padding: calc(6px + 18 * var(--k)) var(--bt-gutter) calc(10px + 14 * var(--k));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--bt-card-w);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "art card"
+    "features .";
+  column-gap: 0;
+  align-items: start;
+}
+
+/* The headline sits in the picture's sky: same grid area, drawn on top. */
+.bt-signup .bt-intro {
+  grid-area: art;
+  position: relative;
+  z-index: 1;
+  align-self: start;
+  padding: calc(14px + 22 * var(--k)) 24px 0;
+  text-align: center;
+}
+.bt-signup .bt-intro h1 {
+  margin: 0;
+  font-family: var(--bt-display);
+  font-size: calc(32px + 6 * var(--k));
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.bt-signup .bt-intro h1 span { display: block; color: var(--bt-orange); }
+.bt-signup .bt-sub {
+  margin: calc(8px + 8 * var(--k)) auto 0;
+  max-width: 30rem;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--bt-muted);
+}
+
+/* The supplied illustration is a tall 1024 x 1536 canvas: cream sky above,
+   the children in the lower half. The panel is exactly as tall as the card
+   (it adds no height of its own), and the picture is pinned to its bottom at
+   full width, so the children always sit at the foot and the sky above takes
+   whatever height the card needs. The plain hill under the dog's paws falls
+   just below the edge. */
+.bt-signup .bt-art {
+  grid-area: art;
+  position: relative;
+  align-self: stretch;
+  overflow: hidden;
+  contain: size;
+  background: #fdf8f0;
+}
+.bt-signup .bt-frame {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  aspect-ratio: 1024 / 1536;
+  transform: translateY(9%);
+}
+.bt-signup .bt-frame img { display: block; width: 100%; height: 100%; }
+/* Placed on the picture itself, in the sky beside the girl. */
+.bt-signup .bt-note {
+  position: absolute;
+  top: 46%;
+  right: 4%;
+  margin: 0;
+  font-family: var(--bt-hand);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.02;
+  text-align: center;
+  color: var(--bt-note);
+  transform: rotate(-9deg);
+}
+.bt-signup .bt-note svg { width: 18px; height: 18px; vertical-align: -2px; }
+
+/* -- the account card ------------------------------------------------- */
+
+.bt-signup .bt-card {
+  grid-area: card;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(12px + 12 * var(--k)) clamp(24px, 2.6vw, 44px) calc(12px + 10 * var(--k));
+  border-radius: 18px;
+  background: var(--bt-card);
+  box-shadow: 0 24px 48px -32px rgba(74, 52, 30, 0.35);
+}
+
+.bt-signup .bt-card h2 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.bt-signup .bt-lead { margin: 2px 0 calc(6px + 10 * var(--k)); font-size: 13.5px; color: var(--bt-muted); }
+
+.bt-signup .bt-field { margin-bottom: calc(5px + 6 * var(--k)); display: grid; gap: calc(3px + 3 * var(--k)); }
+.bt-signup .bt-field > span { font-size: 13px; font-weight: 700; }
+.bt-signup .bt-card input {
+  width: 100%;
+  height: calc(32px + 8 * var(--k));
+  padding: 0 14px;
+  border: 1px solid var(--bt-line);
+  border-radius: 10px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  color: var(--bt-ink);
+}
+.bt-signup .bt-card select {
+  width: 100%;
+  height: calc(32px + 8 * var(--k));
+  padding: 0 10px;
+  border: 1px solid var(--bt-line);
+  border-radius: 10px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  color: var(--bt-ink);
+}
+.bt-signup .bt-card select:invalid { color: var(--bt-faint); }
+.bt-signup .bt-card select:focus {
+  outline: none;
+  border-color: var(--bt-green);
+  box-shadow: 0 0 0 3px rgba(46, 91, 69, 0.14);
+}
+/* Child's name and grade share a line, so the card grows by one row, not two. */
+.bt-signup .bt-field-row { display: grid; grid-template-columns: minmax(0, 1fr) 128px; gap: 12px; }
+.bt-signup .bt-card input::placeholder { color: var(--bt-faint); }
+.bt-signup .bt-card input:focus {
+  outline: none;
+  border-color: var(--bt-green);
+  box-shadow: 0 0 0 3px rgba(46, 91, 69, 0.14);
+}
+
+.bt-signup .bt-password { position: relative; }
+.bt-signup .bt-password input { padding-right: 46px; }
+.bt-signup .bt-eye {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--bt-muted);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+.bt-signup .bt-eye:hover { color: var(--bt-ink); }
+.bt-signup .bt-eye svg { width: 18px; height: 18px; }
+
+.bt-signup .bt-primary {
+  width: 100%;
+  height: calc(36px + 8 * var(--k));
+  margin-top: calc(2px + 4 * var(--k));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--bt-green);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+.bt-signup .bt-primary:hover { background: var(--bt-green-deep); }
+.bt-signup .bt-primary:disabled { opacity: 0.6; cursor: default; }
+.bt-signup .bt-primary svg { width: 16px; height: 16px; }
+
+.bt-signup .bt-or { margin: calc(6px + 8 * var(--k)) 0 calc(4px + 6 * var(--k)); font-size: 12.5px; text-align: center; color: var(--bt-muted); }
+.bt-signup .bt-social { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bt-signup .bt-social button {
+  height: calc(32px + 8 * var(--k));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--bt-line);
+  border-radius: 10px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bt-ink);
+  cursor: pointer;
+}
+.bt-signup .bt-social button:hover { border-color: var(--bt-line-strong); }
+.bt-signup .bt-social svg { width: 18px; height: 18px; }
+
+.bt-signup .bt-legal { margin: calc(6px + 8 * var(--k)) 0 0; font-size: 12px; line-height: 1.55; color: var(--bt-muted); }
+.bt-signup .bt-legal .bt-link { color: var(--bt-link); }
+
+.bt-signup .bt-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bt-error-bg);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--bt-error);
+}
+.bt-signup .bt-notice { margin: 12px 0 0; font-size: 12.5px; text-align: center; color: var(--bt-muted); }
+
+/* -- feature strip, under the illustration ---------------------------- */
+
+.bt-signup .bt-features {
+  grid-area: features;
+  padding-top: calc(6px + 8 * var(--k));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px clamp(24px, 3.5vw, 56px);
+}
+.bt-signup .bt-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--bt-muted);
+}
+.bt-signup .bt-feature svg { width: 30px; height: 30px; flex-shrink: 0; }
+
+.bt-signup button:focus-visible { outline: 2px solid var(--bt-green); outline-offset: 2px; }
+
+/* -- fit the window --------------------------------------------------- */
+
+/* Two columns on a screen tall enough to hold the form: the page is exactly
+   one window high. The card stretches from the top bar to the bottom of the
+   page with its form centred inside; the illustration row absorbs whatever
+   the left column has spare. Being a size container, the picture adds no
+   height of its own, so it shrinks to fit rather than pushing the page into
+   a scroll.
+
+   --bt-left is the width the picture can use at the height left for it
+   (everything else in the left column is 259px on a 640px window, growing
+   by 113px as --k runs to 1). The page is that plus the card and gutters,
+   so on shorter screens it narrows instead of leaving the picture adrift
+   in a wide column. */
+@media (min-width: 901px) and (min-height: 640px) {
+  .bt-signup {
+    --bt-left: calc((100vh - 259px - 113 * var(--k)) * 1024 / 760);
+    --bt-width: min(var(--bt-max), var(--bt-left) + var(--bt-card-w) + 2 * var(--bt-gutter));
+    height: 100vh;
+    height: 100dvh;
+  }
+}
+
+@media (max-width: 900px) {
+  .bt-signup .bt-top { padding: 18px 20px 4px; }
+  .bt-signup .bt-main {
+    padding: 12px 20px 24px;
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-template-areas:
+      "intro"
+      "card"
+      "art"
+      "features";
+    row-gap: 24px;
+  }
+  .bt-signup .bt-intro { padding-top: 8px; }
+  .bt-signup .bt-intro h1 { font-size: 30px; }
+  .bt-signup .bt-wordmark { font-size: 26px; }
+  .bt-signup .bt-brand svg { width: 40px; height: 40px; }
+  .bt-signup .bt-intro { grid-area: intro; padding: 8px 0 0; }
+  .bt-signup .bt-art { aspect-ratio: 1024 / 900; }
+  .bt-signup .bt-features { padding-top: 0; gap: 14px 28px; }
+}

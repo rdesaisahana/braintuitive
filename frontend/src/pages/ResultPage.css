@@ -1,0 +1,176 @@
+/*
+ * "See how I did", in the quiz screen's colours and artwork (it reuses the
+ * quiz's buttons, eyebrow, cheering children and the landscape along the
+ * bottom from QuizPage.css). Everything here starts with bt-res.
+ */
+
+.bt-app:has(.bt-res) { --bt-bg: #fefbf6; --bt-top: #fefcf8; }
+
+.bt-app .bt-res {
+  max-width: 1180px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(260px, 26vw, 340px);
+  gap: clamp(20px, 2.6vw, 36px);
+  align-items: start;
+}
+
+.bt-app .bt-res-card {
+  padding: calc(18px + 12 * var(--k)) clamp(20px, 2.6vw, 36px) calc(16px + 10 * var(--k));
+  border-radius: 20px;
+  background: #fffefd;
+  box-shadow: 0 0 0 1px #f0ede9, 0 20px 44px -32px rgba(60, 50, 80, 0.4);
+}
+.bt-app .bt-res-card h1 {
+  margin: 4px 0 0;
+  font-size: calc(26px + 8 * var(--k));
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--q-navy);
+}
+.bt-app .bt-res-message { margin: 6px 0 0; font-size: 15.5px; color: var(--q-sub); }
+
+.bt-app .bt-res-score {
+  margin-top: calc(12px + 12 * var(--k));
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 3vw, 40px);
+}
+.bt-app .bt-res-ring { position: relative; width: calc(120px + 40 * var(--k)); flex-shrink: 0; }
+.bt-app .bt-res-ring svg { display: block; width: 100%; height: auto; }
+.bt-app .bt-res-ring-track { fill: none; stroke: #e9ebed; stroke-width: 10; }
+.bt-app .bt-res-ring-fill { fill: none; stroke: #e0a13b; stroke-width: 10; stroke-linecap: round; }
+.bt-app .bt-res-ring.is-passed .bt-res-ring-fill { stroke: #4f9a76; }
+.bt-app .bt-res-ring > span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: calc(26px + 8 * var(--k));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--q-navy);
+}
+
+.bt-app .bt-res-facts { margin: 0; display: grid; gap: 10px; }
+.bt-app .bt-res-facts div { display: flex; align-items: baseline; gap: 12px; }
+.bt-app .bt-res-facts dt {
+  min-width: 70px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--q-eyebrow);
+}
+.bt-app .bt-res-facts dd { margin: 0; font-size: 17px; font-weight: 800; color: var(--q-navy); }
+.bt-app .bt-res-note { margin: 10px 0 0; font-size: 13px; color: var(--q-sub); }
+
+.bt-app .bt-res-topics { margin-top: calc(10px + 8 * var(--k)); }
+.bt-app .bt-res-topics h2 {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--q-eyebrow);
+}
+.bt-app .bt-res-topics ul {
+  max-height: calc(110px + 60 * var(--k));
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  overflow-y: auto;
+  list-style: none;
+}
+.bt-app .bt-res-topics li { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--q-navy); }
+.bt-app .bt-res-pct { min-width: 44px; font-weight: 800; color: var(--q-green); font-variant-numeric: tabular-nums; }
+.bt-app .bt-res-pct.is-low { color: var(--q-wrong); }
+.bt-app .bt-res-topic-name { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt-app .bt-res-topic-count { color: var(--q-sub); font-variant-numeric: tabular-nums; }
+
+.bt-app .bt-res-actions {
+  margin-top: calc(14px + 12 * var(--k));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* -- where the points came from ------------------------------------------ */
+
+.bt-app .bt-res-aside { display: grid; gap: 8px; }
+.bt-app .bt-res-points {
+  padding: calc(14px + 8 * var(--k)) 20px calc(14px + 6 * var(--k));
+  border-radius: 20px;
+  background: #fffefd;
+  box-shadow: 0 0 0 1px #f0ede9, 0 20px 44px -32px rgba(60, 50, 80, 0.4);
+}
+.bt-app .bt-res-points-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.bt-app .bt-res-points h2 { margin: 0; font-size: 19px; font-weight: 800; color: var(--q-navy); }
+.bt-app .bt-res-points-total {
+  height: 34px;
+  padding: 0 14px 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  background: #fdf0d2;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--q-navy);
+}
+.bt-app .bt-res-points-total img { width: 22px; height: auto; }
+.bt-app .bt-res-breakdown { margin: 10px 0 0; padding: 0; display: grid; gap: 5px; list-style: none; }
+.bt-app .bt-res-breakdown li { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--q-sub); }
+.bt-app .bt-res-breakdown b { color: var(--q-navy); font-variant-numeric: tabular-nums; }
+.bt-app .bt-res-quiet { margin: 10px 0 0; font-size: 14px; color: var(--q-sub); }
+.bt-app .bt-res-level {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--q-note-bg);
+  font-size: 14.5px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--q-green);
+}
+.bt-app .bt-res-badges { margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
+.bt-app .bt-res-badges li {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #fdf6e4;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--q-navy);
+}
+.bt-app .bt-res-link {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--q-green);
+  cursor: pointer;
+}
+.bt-app .bt-res-link:hover { text-decoration: underline; }
+.bt-app .bt-res-cheer { max-width: 320px; justify-self: center; }
+
+@media (max-width: 1100px) {
+  .bt-app .bt-res { grid-template-columns: minmax(0, 1fr); }
+  .bt-app .bt-res-cheer { display: none; }
+}
+@media (max-width: 900px) {
+  .bt-app .bt-res-score { flex-direction: column; align-items: flex-start; }
+  .bt-app .bt-res-aside { margin-bottom: 120px; }
+}
+
+/* The cheering children stand at the foot of the window, on the landscape,
+   rather than hanging under the points card -- as on the quiz screen. Only
+   where the page is one window high and the points sit in their own column. */
+@media (min-width: 1101px) and (min-height: 600px) {
+  .bt-app.is-fit .bt-res { min-height: 100%; }
+  .bt-app.is-fit .bt-res-aside { align-self: stretch; display: flex; flex-direction: column; gap: 8px; }
+  /* Down past the frame's bottom padding, so they meet the edge of the window. */
+  .bt-app.is-fit .bt-res-cheer { align-self: center; margin-top: auto; margin-bottom: calc(-8px - 2 * var(--k)); }
+}
