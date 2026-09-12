@@ -4,6 +4,22 @@ Homework built from your child's own school curriculum. A parent uploads the
 school's PDF; the app turns it into quizzes that answer back the moment a child
 chooses, and keeps celebration for genuine mastery.
 
+## Try it live
+
+| | Link |
+|---|---|
+| **Website** | **<https://braintuitive.vercel.app>** |
+| API health check | <https://braintuitive-api.onrender.com/health> |
+
+The live site runs on free hosting, so two things to expect:
+
+- **The first visit after 15 quiet minutes takes about a minute** while the
+  API wakes up. After that, pages answer in well under a second.
+- **The live database is wiped whenever the API restarts or is redeployed.**
+  Sign up, add your child and upload the curriculum PDF; the first quizzes are
+  ready about ten minutes later, and the curriculum page shows which topics can
+  be started.
+
 ---
 Flowchart:
 <img width="1215" height="1295" alt="Braintuitive flowchart1" src="https://github.com/user-attachments/assets/8215e03d-5fe8-44bb-9cf7-4c95e6534920" />
@@ -170,6 +186,9 @@ in Pinecone, outside this database; clear the ones belonging to deleted accounts
 with `PineconeStore().delete_namespace("math-grade6-u<owner>")`.
 
 ## Deploy
+
+Live now: website <https://braintuitive.vercel.app>, API
+<https://braintuitive-api.onrender.com>.
 
 The website runs on **Vercel** and the API on **Render**, both built straight
 from this repository. Vercel forwards `/api` to Render, so the browser still
