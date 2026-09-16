@@ -139,6 +139,10 @@ class Settings(BaseSettings):
     # Topics primed at the same time after an upload. Writing questions waits
     # on the model, so a handful at once turns minutes of watching into one.
     BANK_PRIME_WORKERS: int = Field(default=3, ge=1, le=8)
+    # How often the bank is topped up. It is also the recovery time when
+    # priming dies half-way -- a restart on a small host, or the model
+    # refusing -- so a level stuck on "Getting ready" fixes itself.
+    BANK_REFILL_MINUTES: int = Field(default=30, ge=1, le=240)
     BANK_PRIME_BUDGET: int = 90
 
     # -- Quiz rules ----------------------------------------------------------

@@ -37,6 +37,10 @@ services:
       # to be written while a child waited on them.
       - key: BANK_PRIME_BUDGET
         value: "210"
+      # Small host, so priming can be killed part-way; retry sooner than the
+      # half hour a bigger box can afford to wait.
+      - key: BANK_REFILL_MINUTES
+        value: "5"
       - key: SECRET_KEY
         generateValue: true
       - key: NEBIUS_API_KEY

@@ -570,14 +570,16 @@ def register_jobs(scheduler: object) -> None:
     scheduler.add_job(  # type: ignore[attr-defined]
         refill_question_bank,
         trigger="interval",
-        minutes=30,
+        minutes=settings.BANK_REFILL_MINUTES,
         id="refill_question_bank",
         replace_existing=True,
         max_instances=1,  # never let two fillers race
         coalesce=True,  # a missed run does not pile up
         misfire_grace_time=600,
     )
-    logger.info("Registered job: refill_question_bank (every 30 min).")
+    logger.info(
+        "Registered job: refill_question_bank (every %d min).", settings.BANK_REFILL_MINUTES
+    )
 
 
 __all__ = [

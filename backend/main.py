@@ -12,6 +12,7 @@ boots while Phase 4 route modules are being written.
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any
@@ -155,6 +156,9 @@ async def health() -> dict[str, Any]:
     return {
         "status": "healthy" if sqlite_ok else "degraded",
         "version": settings.APP_VERSION,
+        # The deployed commit, so a browser can answer "did my change ship?".
+        # Render sets this; empty anywhere else.
+        "commit": (os.environ.get("RENDER_GIT_COMMIT") or "local")[:7],
         "dependencies": {
             "sqlite": "up" if sqlite_ok else "down",
             "mongodb": "up" if mongo_ok else "not_configured",
