@@ -128,6 +128,14 @@ class Settings(BaseSettings):
     # child's first session is instant rather than waiting ~36s on the
     # model. Three slots; the scheduler covers the rest within its
     # interval, by which time nobody has got that far.
+    # The order priming works through a new curriculum's first unit.
+    #
+    # "topic": 1.1 at every level, then 1.2, and so on -- the path a child
+    # actually walks, so the topic they are on is always finished ahead of
+    # them. "level": Easy for every topic, then Medium, then Tricky, so any
+    # topic can be opened at Easy straight away but its Medium may not be
+    # ready when they get there.
+    BANK_PRIME_ORDER: Literal["topic", "level"] = "topic"
     # Topics primed at the same time after an upload. Writing questions waits
     # on the model, so a handful at once turns minutes of watching into one.
     BANK_PRIME_WORKERS: int = Field(default=3, ge=1, le=8)

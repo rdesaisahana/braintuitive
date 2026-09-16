@@ -252,37 +252,65 @@ def _slots_for_owner(
     return [entry for entry in slots if not entry[2].is_stocked]
 
 
-def _fill_breadth_in_parallel(
-    breadth: list[tuple[CurriculumSubUnit, DifficultyLevel, object]],
+def _priming_groups(
+    slots: list[tuple[CurriculumSubUnit, DifficultyLevel, object]],
+    order: str,
+) -> list[list[tuple[str, DifficultyLevel]]]:
+    """Split the slots into groups to be filled one group after another.
+
+    ``topic`` puts each topic's three levels in one group, in curriculum order:
+    1.1 is finished -- Easy, Medium and Tricky -- before 1.2 is started. A
+    child works down a topic before moving on, so this keeps the work ahead of
+    where they are.
+
+    ``level`` puts each level in one group: Easy everywhere, then Medium, then
+    Tricky. That way any topic can be opened at Easy immediately, which is what
+    the scheduler wants when several children are at different places.
+    """
+    tier = {difficulty: rank for rank, difficulty in enumerate(DifficultyLevel)}
+    if order == "topic":
+        ordered = sorted(
+            slots, key=lambda entry: (entry[0].unit.unit_number, entry[0].sequence, tier[entry[1]])
+        )
+        key = lambda entry: (entry[0].unit.unit_number, entry[0].sequence)  # noqa: E731
+    else:
+        ordered = sorted(
+            slots, key=lambda entry: (entry[0].unit.unit_number, tier[entry[1]], entry[0].sequence)
+        )
+        key = lambda entry: (entry[0].unit.unit_number, entry[1])  # noqa: E731
+
+    groups: list[list[tuple[str, DifficultyLevel]]] = []
+    current_key = object()
+    for entry in ordered:
+        if key(entry) != current_key:
+            current_key = key(entry)
+            groups.append([])
+        groups[-1].append((entry[0].id, entry[1]))
+    return groups
+
+
+def _fill_groups_in_parallel(
+    groups: list[list[tuple[str, DifficultyLevel]]],
     budget: int,
     depth: int,
     workers: int,
     report: FillReport,
 ) -> None:
-    """Give every slot its first quiz, several topics at a time.
+    """Fill one group at a time, its slots concurrently.
 
-    Writing questions is almost entirely waiting on the model, so filling one
-    topic at a time leaves a parent watching a spinner while the machine idles.
-    Each worker opens its own session and its own agent -- neither is safe to
-    share between threads -- exactly as utils/fill_bank.py has always done.
+    Writing questions is almost entirely waiting on the model, so one slot at a
+    time leaves a parent watching a spinner while the machine idles. Each worker
+    opens its own session and its own agent -- neither is safe to share between
+    threads -- exactly as utils/fill_bank.py has always done.
 
-    Two rules survive the concurrency:
-
-    - **A level at a time.** Every topic gets Easy before any topic gets
-      Medium. Which topic finishes first within a level is up to the model, and
-      does not matter; what matters is that a child opening any topic finds a
-      quiz waiting.
-    - **The budget counts questions actually written**, checked before each
-      new topic is started. Up to ``workers`` slots can be in flight when the
-      budget runs out, so it can overshoot by at most that much -- reserving it
-      up front instead would have overshot by the whole queue.
+    A group is finished before the next is started: that is what makes the
+    order mean anything. The budget counts questions actually written, checked
+    before each new slot is started, so it can overshoot by at most the slots
+    already in flight -- reserving it up front overshot by the whole queue.
     """
     started = report.questions_added
-    by_level: dict[DifficultyLevel, list[tuple[str, str]]] = defaultdict(list)
-    for sub_unit, difficulty, _status in breadth:
-        by_level[difficulty].append((sub_unit.id, sub_unit.sub_unit_number))
 
-    def fill_one(sub_unit_id: str) -> FillReport:
+    def fill_one(sub_unit_id: str, difficulty: DifficultyLevel) -> FillReport:
         own = FillReport()
         with session_scope() as own_db:
             sub_unit = own_db.get(CurriculumSubUnit, sub_unit_id)
@@ -300,8 +328,8 @@ def _fill_breadth_in_parallel(
     def absorb(future: Future) -> None:
         try:
             part = future.result()
-        except Exception as exc:  # noqa: BLE001 - one topic must not sink the rest
-            logger.exception("Priming a topic failed")
+        except Exception as exc:  # noqa: BLE001 - one slot must not sink the rest
+            logger.exception("Priming a slot failed")
             report.errors.append(str(exc)[:200])
             return
         report.slots_examined += part.slots_examined
@@ -311,15 +339,14 @@ def _fill_breadth_in_parallel(
         report.duplicates_skipped += part.duplicates_skipped
         report.errors.extend(part.errors)
 
-    for difficulty in DifficultyLevel:
-        group = by_level.get(difficulty, [])
+    for group in groups:
         queue = list(group)
         with ThreadPoolExecutor(max_workers=workers) as pool:
             in_flight: set[Future] = set()
             while queue or in_flight:
                 while queue and len(in_flight) < workers and report.questions_added - started < budget:
-                    sub_unit_id, _number = queue.pop(0)
-                    in_flight.add(pool.submit(fill_one, sub_unit_id))
+                    sub_unit_id, difficulty = queue.pop(0)
+                    in_flight.add(pool.submit(fill_one, sub_unit_id, difficulty))
                 if not in_flight:
                     break
                 done, in_flight = wait(in_flight, return_when=FIRST_COMPLETED)
@@ -337,6 +364,7 @@ def _fill_slots(
     agent: QuizGeneratorAgent,
     report: FillReport,
     workers: int = 1,
+    order: str = "level",
 ) -> None:
     """Spend up to ``budget`` questions on these slots: breadth first, then depth.
 
@@ -353,14 +381,12 @@ def _fill_slots(
     """
     start = report.questions_added
     first_quiz = min(target, settings.QUESTIONS_PER_QUIZ)
-    tier_order = {difficulty: rank for rank, difficulty in enumerate(DifficultyLevel)}
-    breadth = sorted(
-        slots,
-        key=lambda entry: (entry[0].unit.unit_number, tier_order[entry[1]], entry[0].sequence),
-    )
+    groups = _priming_groups(slots, order)
+    by_id = {sub_unit.id: sub_unit for sub_unit, _difficulty, _status in slots}
+    breadth = [(by_id[sub_unit_id], difficulty, None) for group in groups for sub_unit_id, difficulty in group]
 
-    if workers > 1 and breadth:
-        _fill_breadth_in_parallel(breadth, budget, first_quiz, workers, report)
+    if workers > 1 and groups:
+        _fill_groups_in_parallel(groups, budget, first_quiz, workers, report)
         # Depth only buys retries, and nobody is watching it: one at a time.
         for sub_unit, difficulty, _status in slots:
             if report.questions_added - start >= budget:
@@ -518,8 +544,18 @@ def prime_new_curriculum(
             budget,
         )
         agent = QuizGeneratorAgent(verify=True, verbose=False)
-        # A parent is watching this one, so it fills several topics at once.
-        _fill_slots(db, slots, budget, target, agent, report, workers=settings.BANK_PRIME_WORKERS)
+        # A parent is watching this one: several slots at once, and in the
+        # order a child will meet them.
+        _fill_slots(
+            db,
+            slots,
+            budget,
+            target,
+            agent,
+            report,
+            workers=settings.BANK_PRIME_WORKERS,
+            order=settings.BANK_PRIME_ORDER,
+        )
 
     logger.info("Priming complete for %s: %s", user_id[:8], report.summary())
     return report

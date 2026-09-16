@@ -406,15 +406,16 @@ def stub_filling_to_depth(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, st
     return calls
 
 
-def test_priming_gives_every_unit_one_topic_an_easy_quiz_before_going_deeper(
+def test_priming_never_goes_deep_before_every_slot_has_a_quiz(
     db: Session, world: dict[str, Any], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The bug this guards: priming filled Topic 1.1 thirty deep in all three
-    tiers and spent its whole budget there, so a child who opened 1.2 waited
-    a minute or more for live generation.
+    tiers and spent its whole budget there, so a child who opened 1.2 waited a
+    minute or more for live generation.
 
-    The budget here is exactly one quiz per Unit 1 topic. Filled depth-first,
-    it all goes into 1.1's Easy slot and 1.2 gets nothing.
+    Depth only buys retries; a first quiz is what a child actually needs. So
+    every slot in scope gets one quiz before any slot is topped up, whichever
+    order the slots are worked through.
     """
     from config import settings
     from services.scheduler_jobs import prime_new_curriculum
@@ -422,23 +423,38 @@ def test_priming_gives_every_unit_one_topic_an_easy_quiz_before_going_deeper(
     use_test_session(monkeypatch, db)
     calls = stub_filling_to_depth(monkeypatch)
     one_quiz = settings.QUESTIONS_PER_QUIZ
+    slots = 3 * SUB_UNITS_PER_UNIT
 
-    prime_new_curriculum(world["alice"].id, budget=SUB_UNITS_PER_UNIT * one_quiz)
+    prime_new_curriculum(world["alice"].id, budget=slots * one_quiz)
 
-    assert calls == [
-        ("1.1", "beginner", one_quiz),
-        ("1.2", "beginner", one_quiz),
-    ], calls
+    first_pass = calls[:slots]
+    assert all(target == one_quiz for _number, _tier, target in first_pass), calls
+    assert len({(number, tier) for number, tier, _ in first_pass}) == slots, calls
 
 
-def test_breadth_comes_first_then_every_slot_is_topped_up(
-    db: Session, world: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize(("order", "grouped_by"), [("topic", 0), ("level", 1)])
+def test_priming_follows_the_order_it_is_given(
+    db: Session,
+    world: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+    order: str,
+    grouped_by: int,
 ) -> None:
-    """Easy everywhere, then Medium, then Tricky -- one quiz each -- and only
-    then the full depth that buys retries."""
+    """Two orders, each for a reason.
+
+    "topic" finishes 1.1 at every level before starting 1.2 -- the path one
+    child walks, so the questions stay ahead of where they are. "level" gives
+    every topic an Easy quiz first, so any topic can be opened straight away,
+    which is what the scheduler wants when children are in different places.
+
+    Whichever is chosen, a group is finished before the next is started. Who
+    finishes first inside a group is the model's business: slots are filled
+    several at a time.
+    """
     from config import settings
     from services.scheduler_jobs import prime_new_curriculum
 
+    monkeypatch.setattr(settings, "BANK_PRIME_ORDER", order)
     use_test_session(monkeypatch, db)
     calls = stub_filling_to_depth(monkeypatch)
     one_quiz = settings.QUESTIONS_PER_QUIZ
@@ -446,20 +462,18 @@ def test_breadth_comes_first_then_every_slot_is_topped_up(
     prime_new_curriculum(world["alice"].id, budget=10_000, target=30)
 
     breadth = calls[: 3 * SUB_UNITS_PER_UNIT]
-    assert all(size == one_quiz for _number, _tier, size in breadth), breadth
+    assert all(target == one_quiz for _number, _tier, target in breadth), breadth
 
-    # Topics are filled several at a time, so which one finishes first within a
-    # level is the model's business. The rule is that a level is finished before
-    # the next is started: every topic has Easy before any topic has Medium.
-    levels = [tier for _number, tier, _size in breadth]
-    assert levels == (
-        ["beginner"] * SUB_UNITS_PER_UNIT
-        + ["intermediate"] * SUB_UNITS_PER_UNIT
-        + ["proficient"] * SUB_UNITS_PER_UNIT
-    ), levels
-    for tier in ("beginner", "intermediate", "proficient"):
-        covered = {number for number, level, _size in breadth if level == tier}
-        assert len(covered) == SUB_UNITS_PER_UNIT, f"{tier} skipped a topic: {covered}"
+    # Each group is one unbroken run: 1.1's three levels together for "topic",
+    # every topic's Easy together for "level", and never returned to later.
+    seen: list[str] = []
+    for entry in breadth:
+        key = entry[grouped_by]
+        if not seen or seen[-1] != key:
+            assert key not in seen, f"{key} was returned to after moving on: {breadth}"
+            seen.append(key)
+    assert len(seen) == (SUB_UNITS_PER_UNIT if order == "topic" else 3), breadth
+
     depth = calls[3 * SUB_UNITS_PER_UNIT :]
     assert depth and all(target == 30 for _, _, target in depth), depth
     assert {(number, tier) for number, tier, _ in depth} == {
