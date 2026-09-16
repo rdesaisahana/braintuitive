@@ -28,7 +28,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -401,6 +401,26 @@ def _prime_bank(user_id: str) -> None:
         )
 
 
+# Reading and building happen in a background thread. If the server restarts
+# mid-way -- ordinary on small hosts, which restart on every deploy -- that
+# thread is gone and its row stays "processing" with nobody working on it. Past
+# this age it is treated as dead, so it can never wedge a parent out of
+# uploading again or deleting what they have.
+ABANDONED_AFTER = timedelta(minutes=10)
+
+
+def _is_abandoned(upload: CurriculumUpload, now: datetime) -> bool:
+    """True if nothing has touched this half-finished upload for a long time."""
+    if upload.status not in (UploadStatus.PENDING, UploadStatus.PROCESSING):
+        return False
+    touched = upload.started_at or upload.updated_at or upload.created_at
+    if touched is None:
+        return False
+    if touched.tzinfo is None:
+        touched = touched.replace(tzinfo=UTC)
+    return now - touched > ABANDONED_AFTER
+
+
 def active_upload(db: Session, user_id: str) -> CurriculumUpload | None:
     """An upload this parent has in flight, if any.
 
@@ -410,8 +430,11 @@ def active_upload(db: Session, user_id: str) -> CurriculumUpload | None:
     An upload waiting for confirmation counts. It has not built anything yet,
     but it is still the parent's open decision -- and counting it is what
     brings the question back if they reload the page or come back tomorrow.
+
+    One that died half-way does not count: it is marked failed here, with a
+    reason the parent can read, rather than blocking them forever.
     """
-    return (
+    upload = (
         db.query(CurriculumUpload)
         .filter(
             CurriculumUpload.user_id == user_id,
@@ -422,6 +445,17 @@ def active_upload(db: Session, user_id: str) -> CurriculumUpload | None:
         .order_by(CurriculumUpload.created_at.desc())
         .first()
     )
+    if upload is not None and _is_abandoned(upload, datetime.now(UTC)):
+        logger.warning("Upload %s looks abandoned; marking it failed.", upload.id)
+        upload.status = UploadStatus.FAILED
+        upload.error = (
+            "This upload stopped part-way through, most likely because the server "
+            "restarted. Nothing was kept. Please upload the file again."
+        )
+        upload.completed_at = datetime.now(UTC)
+        db.commit()
+        return None
+    return upload
 
 
 __all__ = [

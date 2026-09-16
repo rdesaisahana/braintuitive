@@ -579,6 +579,13 @@ export default function CurriculumPage({
             Points, levels and characters are kept — those belong to your child, not to the
             curriculum. This cannot be undone.
           </p>
+          {/* Next to the button that was pressed: an explanation at the top of
+              the page, behind a scroll, reads as nothing having happened. */}
+          {error && (
+            <p className="bt-cur-error" role="alert">
+              {error}
+            </p>
+          )}
           <div className="bt-cur-actions">
             <button
               type="button"

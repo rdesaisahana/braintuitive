@@ -300,6 +300,38 @@ def make_upload(db: Session, user: User, status: UploadStatus) -> CurriculumUplo
     return upload
 
 
+def test_an_upload_abandoned_mid_way_stops_blocking(
+    db: Session, world: dict[str, Any]
+) -> None:
+    """A server restart kills the thread doing the work and leaves the row on
+    "processing" with nobody working on it. Before this, that wedged the parent
+    out of uploading again *and* out of deleting what they had, forever."""
+    from datetime import UTC, datetime, timedelta
+
+    upload = make_upload(db, world["alice"], UploadStatus.PROCESSING)
+    upload.started_at = datetime.now(UTC) - timedelta(minutes=30)
+    db.commit()
+
+    assert active_upload(db, world["alice"].id) is None
+    db.refresh(upload)
+    assert upload.status is UploadStatus.FAILED
+    assert "restarted" in (upload.error or ""), "the parent is told why, and what to do"
+
+
+def test_an_upload_still_being_worked_on_keeps_blocking(
+    db: Session, world: dict[str, Any]
+) -> None:
+    """The point of the rule above is the dead ones only; a live ingest must
+    still stop a second one starting underneath it."""
+    from datetime import UTC, datetime, timedelta
+
+    upload = make_upload(db, world["alice"], UploadStatus.PROCESSING)
+    upload.started_at = datetime.now(UTC) - timedelta(minutes=1)
+    db.commit()
+
+    assert active_upload(db, world["alice"].id) is not None
+
+
 @pytest.mark.parametrize("status", [UploadStatus.PENDING, UploadStatus.PROCESSING])
 def test_an_unfinished_upload_is_reported_as_active(
     db: Session, world: dict[str, Any], status: UploadStatus

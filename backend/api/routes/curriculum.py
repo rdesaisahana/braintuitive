@@ -653,10 +653,18 @@ def remove_curriculum(
     Refused while an upload is running: that job writes units and questions as
     it goes, and deleting underneath it would leave half a curriculum behind.
     """
-    if active_upload(db, user.id) is not None:
+    blocking = active_upload(db, user.id)
+    if blocking is not None:
+        waiting = blocking.status is UploadStatus.REVIEW
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="An upload is in progress. Finish or cancel it first.",
+            detail=(
+                f"{blocking.filename} is waiting for you to confirm it. Choose "
+                "\"Not this one\" on it first, then remove the curriculum."
+                if waiting
+                else f"{blocking.filename} is still being read. Wait for it to finish, "
+                "then remove the curriculum."
+            ),
         )
 
     report = delete_curriculum(db, user.id)
