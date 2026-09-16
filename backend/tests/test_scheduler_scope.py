@@ -446,14 +446,20 @@ def test_breadth_comes_first_then_every_slot_is_topped_up(
     prime_new_curriculum(world["alice"].id, budget=10_000, target=30)
 
     breadth = calls[: 3 * SUB_UNITS_PER_UNIT]
-    assert breadth == [
-        ("1.1", "beginner", one_quiz),
-        ("1.2", "beginner", one_quiz),
-        ("1.1", "intermediate", one_quiz),
-        ("1.2", "intermediate", one_quiz),
-        ("1.1", "proficient", one_quiz),
-        ("1.2", "proficient", one_quiz),
-    ], breadth
+    assert all(size == one_quiz for _number, _tier, size in breadth), breadth
+
+    # Topics are filled several at a time, so which one finishes first within a
+    # level is the model's business. The rule is that a level is finished before
+    # the next is started: every topic has Easy before any topic has Medium.
+    levels = [tier for _number, tier, _size in breadth]
+    assert levels == (
+        ["beginner"] * SUB_UNITS_PER_UNIT
+        + ["intermediate"] * SUB_UNITS_PER_UNIT
+        + ["proficient"] * SUB_UNITS_PER_UNIT
+    ), levels
+    for tier in ("beginner", "intermediate", "proficient"):
+        covered = {number for number, level, _size in breadth if level == tier}
+        assert len(covered) == SUB_UNITS_PER_UNIT, f"{tier} skipped a topic: {covered}"
     depth = calls[3 * SUB_UNITS_PER_UNIT :]
     assert depth and all(target == 30 for _, _, target in depth), depth
     assert {(number, tier) for number, tier, _ in depth} == {

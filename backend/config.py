@@ -63,6 +63,11 @@ class Settings(BaseSettings):
     # -- Security ------------------------------------------------------------
     # MUST be overridden in production. Generate with: openssl rand -hex 32
     SECRET_KEY: str = "dev-only-insecure-secret-change-me"
+    # Work factor for password hashing. Each step doubles the time: 12 takes
+    # about half a second on a laptop and five seconds on a small cloud
+    # instance, which reads as a hung sign-up button. 10 is still far beyond
+    # what brute force can chew through, and takes about an eighth of a second.
+    BCRYPT_ROUNDS: int = Field(default=10, ge=8, le=16)
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
@@ -123,6 +128,9 @@ class Settings(BaseSettings):
     # child's first session is instant rather than waiting ~36s on the
     # model. Three slots; the scheduler covers the rest within its
     # interval, by which time nobody has got that far.
+    # Topics primed at the same time after an upload. Writing questions waits
+    # on the model, so a handful at once turns minutes of watching into one.
+    BANK_PRIME_WORKERS: int = Field(default=3, ge=1, le=8)
     BANK_PRIME_BUDGET: int = 90
 
     # -- Quiz rules ----------------------------------------------------------

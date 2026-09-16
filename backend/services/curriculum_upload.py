@@ -165,6 +165,36 @@ def build_preview(document: Any) -> dict[str, Any]:  # noqa: ANN401 - ParsedDocu
     }
 
 
+# What the preview parsed, waiting for the parent to say yes. Reading the PDF
+# is the slowest step that is not a model call, and the confirm step would
+# otherwise do it all over again on the same file. Keyed by upload, with the
+# inputs that produced it, so a cached copy is only ever used for its own file.
+# A restart between the two steps simply empties this and the parse runs again.
+_parsed_cache: dict[str, tuple[str, str, int | None, Any]] = {}
+
+
+def cache_parsed(upload_id: str, path: Path, subject: str, grade_level: int | None, document: Any) -> None:
+    """Keep the preview's parse for the confirm step. Holds the last few only."""
+    for stale in list(_parsed_cache)[:-2]:
+        _parsed_cache.pop(stale, None)
+    _parsed_cache[upload_id] = (str(path), subject, grade_level, document)
+
+
+def take_parsed(upload_id: str, path: Path, subject: str, grade_level: int | None) -> Any:
+    """The cached parse for this exact file, or None to parse it again."""
+    cached = _parsed_cache.pop(upload_id, None)
+    if cached is None:
+        return None
+    cached_path, cached_subject, cached_grade, document = cached
+    if (cached_path, cached_subject) != (str(path), subject):
+        return None
+    # The preview infers the grade when the form left it blank; reuse only when
+    # the confirm step asks for the same grade, or for whatever was inferred.
+    if grade_level is not None and grade_level != cached_grade and grade_level != getattr(document, "grade_level", None):
+        return None
+    return document
+
+
 def run_preview(upload_id: str) -> None:
     """Read a stored upload and stop for the parent to confirm it.
 
@@ -195,6 +225,7 @@ def run_preview(upload_id: str) -> None:
             db.commit()
 
         document = CurriculumPDFParser().parse(path, subject=subject, grade_level=grade_level)
+        cache_parsed(upload_id, path, subject, grade_level, document)
         if not document.units:
             error = NO_UNITS_MESSAGE
         else:
@@ -312,6 +343,9 @@ def run_ingestion(upload_id: str) -> None:
             subject=subject,
             grade_level=grade_level,
             user_id=user_id,
+            # The preview read this same PDF a moment ago; reading it again is
+            # the longest wait in this step that is not a model call.
+            document=take_parsed(upload_id, Path(path), subject, grade_level) if path else None,
         )
         if not report.units_written:
             # A PDF that parses but yields nothing is the common failure, and

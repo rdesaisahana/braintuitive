@@ -27,7 +27,9 @@ logger = logging.getLogger(__name__)
 MAX_PASSWORD_BYTES = 72
 MIN_PASSWORD_LENGTH = 8
 
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+_pwd_context = CryptContext(
+    schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=settings.BCRYPT_ROUNDS
+)
 
 TokenType = Literal["access", "refresh"]
 

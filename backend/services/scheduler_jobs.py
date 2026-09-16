@@ -34,6 +34,9 @@ from __future__ import annotations
 import logging
 
 from sqlalchemy import func
+from collections import defaultdict
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
+
 from sqlalchemy.orm import Session
 
 from agents.quiz_generator import QuizGeneratorAgent
@@ -249,6 +252,83 @@ def _slots_for_owner(
     return [entry for entry in slots if not entry[2].is_stocked]
 
 
+def _fill_breadth_in_parallel(
+    breadth: list[tuple[CurriculumSubUnit, DifficultyLevel, object]],
+    budget: int,
+    depth: int,
+    workers: int,
+    report: FillReport,
+) -> None:
+    """Give every slot its first quiz, several topics at a time.
+
+    Writing questions is almost entirely waiting on the model, so filling one
+    topic at a time leaves a parent watching a spinner while the machine idles.
+    Each worker opens its own session and its own agent -- neither is safe to
+    share between threads -- exactly as utils/fill_bank.py has always done.
+
+    Two rules survive the concurrency:
+
+    - **A level at a time.** Every topic gets Easy before any topic gets
+      Medium. Which topic finishes first within a level is up to the model, and
+      does not matter; what matters is that a child opening any topic finds a
+      quiz waiting.
+    - **The budget counts questions actually written**, checked before each
+      new topic is started. Up to ``workers`` slots can be in flight when the
+      budget runs out, so it can overshoot by at most that much -- reserving it
+      up front instead would have overshot by the whole queue.
+    """
+    started = report.questions_added
+    by_level: dict[DifficultyLevel, list[tuple[str, str]]] = defaultdict(list)
+    for sub_unit, difficulty, _status in breadth:
+        by_level[difficulty].append((sub_unit.id, sub_unit.sub_unit_number))
+
+    def fill_one(sub_unit_id: str) -> FillReport:
+        own = FillReport()
+        with session_scope() as own_db:
+            sub_unit = own_db.get(CurriculumSubUnit, sub_unit_id)
+            if sub_unit is not None:
+                fill_slot(
+                    own_db,
+                    sub_unit=sub_unit,
+                    difficulty=difficulty,
+                    target=depth,
+                    agent=QuizGeneratorAgent(verify=True, verbose=False),
+                    report=own,
+                )
+        return own
+
+    def absorb(future: Future) -> None:
+        try:
+            part = future.result()
+        except Exception as exc:  # noqa: BLE001 - one topic must not sink the rest
+            logger.exception("Priming a topic failed")
+            report.errors.append(str(exc)[:200])
+            return
+        report.slots_examined += part.slots_examined
+        report.slots_filled += part.slots_filled
+        report.questions_added += part.questions_added
+        report.quarantined += part.quarantined
+        report.duplicates_skipped += part.duplicates_skipped
+        report.errors.extend(part.errors)
+
+    for difficulty in DifficultyLevel:
+        group = by_level.get(difficulty, [])
+        queue = list(group)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            in_flight: set[Future] = set()
+            while queue or in_flight:
+                while queue and len(in_flight) < workers and report.questions_added - started < budget:
+                    sub_unit_id, _number = queue.pop(0)
+                    in_flight.add(pool.submit(fill_one, sub_unit_id))
+                if not in_flight:
+                    break
+                done, in_flight = wait(in_flight, return_when=FIRST_COMPLETED)
+                for future in done:
+                    absorb(future)
+        if report.questions_added - started >= budget:
+            return
+
+
 def _fill_slots(
     db: Session,
     slots: list[tuple[CurriculumSubUnit, DifficultyLevel, object]],
@@ -256,6 +336,7 @@ def _fill_slots(
     target: int,
     agent: QuizGeneratorAgent,
     report: FillReport,
+    workers: int = 1,
 ) -> None:
     """Spend up to ``budget`` questions on these slots: breadth first, then depth.
 
@@ -277,6 +358,17 @@ def _fill_slots(
         slots,
         key=lambda entry: (entry[0].unit.unit_number, tier_order[entry[1]], entry[0].sequence),
     )
+
+    if workers > 1 and breadth:
+        _fill_breadth_in_parallel(breadth, budget, first_quiz, workers, report)
+        # Depth only buys retries, and nobody is watching it: one at a time.
+        for sub_unit, difficulty, _status in slots:
+            if report.questions_added - start >= budget:
+                return
+            fill_slot(
+                db, sub_unit=sub_unit, difficulty=difficulty, target=target, agent=agent, report=report
+            )
+        return
 
     for ordered, depth in ((breadth, first_quiz), (slots, target)):
         for sub_unit, difficulty, _status in ordered:
@@ -426,7 +518,8 @@ def prime_new_curriculum(
             budget,
         )
         agent = QuizGeneratorAgent(verify=True, verbose=False)
-        _fill_slots(db, slots, budget, target, agent, report)
+        # A parent is watching this one, so it fills several topics at once.
+        _fill_slots(db, slots, budget, target, agent, report, workers=settings.BANK_PRIME_WORKERS)
 
     logger.info("Priming complete for %s: %s", user_id[:8], report.summary())
     return report

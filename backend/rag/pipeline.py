@@ -278,6 +278,7 @@ class CurriculumIngestionPipeline:
         dry_run: bool = False,
         replace: bool = False,
         user_id: str | None = None,
+        document: ParsedDocument | None = None,
     ) -> IngestionReport:
         """Run the full pipeline.
 
@@ -290,12 +291,19 @@ class CurriculumIngestionPipeline:
             replace: Clear the namespace before upserting.
             user_id: Owner of the resulting curriculum. None means the shared
                 sample every family sees until they upload their own.
+            document: An already-parsed copy of this same PDF. Reading a
+                curriculum takes seconds on a laptop and over a minute on a
+                small cloud instance, and the preview has just done it, so the
+                confirm step passes its result in rather than doing it twice.
 
         Returns:
             An :class:`IngestionReport`.
         """
-        # --- 1. parse -----------------------------------------------------
-        document = self.parser.parse(pdf_path, subject=subject, grade_level=grade_level)
+        # --- 1. parse (or reuse the preview's) ------------------------------
+        if document is None:
+            document = self.parser.parse(pdf_path, subject=subject, grade_level=grade_level)
+        else:
+            logger.info("Reusing the parsed curriculum from the preview.")
         report = IngestionReport(
             filename=document.filename,
             content_hash=document.content_hash,
