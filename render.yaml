@@ -31,6 +31,12 @@ services:
         value: production
       - key: DEBUG
         value: "false"
+      # One quiz for every level of every Unit 1 topic, written when the parent
+      # approves the curriculum: 7 topics x 3 levels x 10 questions. The default
+      # 90 covers Easy everywhere and little else, which left Medium and Tricky
+      # to be written while a child waited on them.
+      - key: BANK_PRIME_BUDGET
+        value: "210"
       - key: SECRET_KEY
         generateValue: true
       - key: NEBIUS_API_KEY
